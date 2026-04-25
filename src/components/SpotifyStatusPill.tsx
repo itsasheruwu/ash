@@ -48,6 +48,12 @@ function releaseLabel(iso: string | null | undefined) {
   return /^\d{4}$/.test(y) ? y : iso
 }
 
+function displayTrackTitle(name: string) {
+  return name
+    .replace(/\s*[\[(]\s*(?:feat\.?|ft\.?|featuring)\s+[^)\]]+[\])]\s*$/i, '')
+    .trim() || name
+}
+
 function withCacheBust(endpoint: string) {
   try {
     const u = new URL(endpoint, window.location.origin)
@@ -244,6 +250,7 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
   }
 
   const { state, track } = data
+  const trackTitle = displayTrackTitle(track.name)
 
   if (!track) {
     return outer(
@@ -256,12 +263,12 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
 
   const label =
     isTransitioning
-      ? `Transitioning soon: ${track.name} — ${track.artist}`
+      ? `Transitioning soon: ${trackTitle} — ${track.artist}`
       : state === 'playing'
-        ? `Now playing: ${track.name} — ${track.artist}`
+        ? `Now playing: ${trackTitle} — ${track.artist}`
       : state === 'paused'
-        ? `Paused: ${track.name} — ${track.artist}`
-        : `Last played: ${track.name} — ${track.artist}`
+        ? `Paused: ${trackTitle} — ${track.artist}`
+        : `Last played: ${trackTitle} — ${track.artist}`
 
   const titleClassName = cn(
     'spotify-status-pill__title',
@@ -278,7 +285,7 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
       <span className="spotify-status-pill__copy">
         <span className="spotify-status-pill__line1">
           <span className={titleClassName} style={titleArtStops ?? undefined}>
-            {track.name}
+            {trackTitle}
           </span>
         </span>
         {track.artist ? (
@@ -351,7 +358,7 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
                           : 'Last played'}
                     </p>
                     <h2 className="spotify-morph__track-name">
-                      {track.name}
+                      {trackTitle}
                       {track.explicit ? (
                         <span className="spotify-morph__explicit" aria-label="Explicit">
                           E
