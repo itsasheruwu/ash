@@ -5,6 +5,7 @@
 - When requesting broader UI work, often attaches both ui-ux-concepts and frontend-design skills for the pass.
 - Appreciates concise, scannable hero copy (short taglines) as the page is refined.
 - Prefers project-wide Cursor commands (e.g. verify/de-slop) to stay toolchain-agnostic: describe how to discover the repo’s checks and what to accomplish, not specific languages or package managers.
+- Prefers tighter vertical spacing in the links card (header and contact row) over large blank areas around those blocks.
 
 ## Learned Workspace Facts
 
@@ -17,3 +18,5 @@
 - `Hero.tsx` uses a `failedProxyUrl` pattern for Instagram proxy image failures so proxy URL changes retry without `setState` inside an effect.
 - `npm run verify` runs `build`, then `test`, then `lint` in one command (`npm run build && npm test && npm run lint`).
 - `.cursor/commands/verify.md` is the `/verify` slash command for a combined verification and de-slop pass; the instructions are written to stay stack-agnostic.
+- Vite inlines `VITE_*` at build time. The GitHub Pages workflow (`.github/workflows/pages.yml`) should pass `VITE_SPOTIFY_STATUS_URL` and `VITE_INSTAGRAM_AVATAR_URL` from repository secrets so production builds match local `.env` (Spotify status pill, Instagram proxy avatar in the hero).
+- Track title colors in `SpotifyStatusPill` can be derived from album art via `src/lib/extractVibrantColorsFromImageUrl.ts`.

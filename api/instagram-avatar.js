@@ -67,7 +67,7 @@ async function profilePicFromWebApi(username) {
   }
   const user = data?.data?.user
   const pic = user?.profile_pic_url_hd ?? user?.profile_pic_url ?? null
-  return typeof pic === 'string' && pic.startsWith('http') ? pic : null
+  return normalizeInstagramImageUrl(pic)
 }
 
 /** Fallback if the JSON API is blocked (logged-in wall, etc.). */
@@ -81,8 +81,16 @@ async function profilePicFromProfileHtml(username) {
   const lo = html.match(/"profile_pic_url":"([^"]+)"/)
   const og = html.match(/property="og:image" content="([^"]+)"/)
   const raw = hd?.[1] ?? lo?.[1] ?? og?.[1]
-  if (!raw) return null
-  return raw.replace(/\\u0026/g, '&')
+  return normalizeInstagramImageUrl(raw)
+}
+
+function normalizeInstagramImageUrl(raw) {
+  if (typeof raw !== 'string') return null
+  const url = raw
+    .replace(/\\u0026/g, '&')
+    .replace(/&amp;/g, '&')
+    .replace(/&#38;/g, '&')
+  return url.startsWith('http') ? url : null
 }
 
 export default async function handler(req, res) {

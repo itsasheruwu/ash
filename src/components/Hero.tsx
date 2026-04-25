@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FaCircleExclamation } from 'react-icons/fa6'
+import {
+  getInstagramApiBase,
+  getInstagramProxyImageUrl,
+} from '@/lib/instagramAvatarApi'
 import { instagramUsernameFromProfile, type ProfileConfig } from '../data/profile'
 
 type HeroProps = {
   profile: ProfileConfig
 }
 
-function instagramAvatarImageUrl(profile: ProfileConfig): string | null {
-  const api = import.meta.env.VITE_INSTAGRAM_AVATAR_URL?.trim()
-  const user = instagramUsernameFromProfile(profile)
-  if (!api || !user) return null
-  const base = api.replace(/\/$/, '')
-  return `${base}?username=${encodeURIComponent(user)}&format=image`
+function publicAssetUrl(relativePath: string): string {
+  const p = relativePath.replace(/^\//, '')
+  return `${import.meta.env.BASE_URL}${p}`
 }
 
 function HeroTitle({
@@ -100,42 +101,137 @@ function HeroTitle({
   )
 }
 
-function Hero({ profile }: HeroProps) {
-  const staticFallback = profile.avatarSrc?.trim() || null
-  const igProxyUrl = useMemo(() => instagramAvatarImageUrl(profile), [profile])
+type HeroAvatarImageProps = {
+  displayName: string
+  igProxyUrl: string | null
+  /** From GET /api/instagram-avatar?username=… (JSON) when ?format=image fails. */
+  cdnFromJson: string | null
+  staticResolved: string | null
+}
 
-  const [failedProxyUrl, setFailedProxyUrl] = useState<string | null>(null)
+/**
+ * Try, in order: proxied `format=image` from our API, optional static override, then raw CDN
+ * (may work when the image proxy 502s but JSON still returns `profilePicUrl`).
+ */
+function HeroAvatarImage({
+  displayName,
+  igProxyUrl,
+  cdnFromJson,
+  staticResolved,
+}: HeroAvatarImageProps) {
+  const chain = useMemo(
+    () =>
+      [igProxyUrl, staticResolved, cdnFromJson]
+        .filter((v): v is string => Boolean(v))
+        .filter((v, i, a) => a.indexOf(v) === i),
+    [igProxyUrl, staticResolved, cdnFromJson],
+  )
 
-  const photoSrc =
-    igProxyUrl && failedProxyUrl !== igProxyUrl ? igProxyUrl : staticFallback || null
+  const [errIdx, setErrIdx] = useState(0)
+
+  const photoSrc = chain[errIdx] ?? null
   const showPhoto = Boolean(photoSrc)
 
   const initials =
-    profile.displayName.trim().length >= 3
-      ? profile.displayName.slice(0, 3).toUpperCase()
-      : profile.displayName.trim().toUpperCase().slice(0, 3) || '···'
+    displayName.trim().length >= 3
+      ? displayName.slice(0, 3).toUpperCase()
+      : displayName.trim().toUpperCase().slice(0, 3) || '···'
+
+  return (
+    <div
+      className={`avatar${showPhoto ? ' avatar--photo' : ''}`}
+      {...(showPhoto ? {} : { 'aria-hidden': true })}
+    >
+      {showPhoto && photoSrc ? (
+        <img
+          key={`${errIdx}-${photoSrc.slice(0, 64)}`}
+          src={photoSrc}
+          alt={`${displayName} profile photo`}
+          width={320}
+          height={320}
+          decoding="async"
+          referrerPolicy="no-referrer"
+          onError={() => setErrIdx((n) => n + 1)}
+        />
+      ) : (
+        <span>{initials}</span>
+      )}
+    </div>
+  )
+}
+
+type HeroAvatarSectionProps = {
+  displayName: string
+  staticResolved: string | null
+  igProxyUrl: string | null
+  apiBase: string | null
+  igName: string | null
+}
+
+/** Fetches JSON profilePic; parent uses `key` so cdn state resets on API identity change. */
+function HeroAvatarSection({
+  displayName,
+  staticResolved,
+  igProxyUrl,
+  apiBase,
+  igName,
+}: HeroAvatarSectionProps) {
+  const [cdnFromJson, setCdnFromJson] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!apiBase || !igName) return
+    const ac = new AbortController()
+    const url = `${apiBase.replace(/\/$/, '')}?username=${encodeURIComponent(igName)}`
+    void fetch(url, { signal: ac.signal, credentials: 'omit' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j: { ok?: boolean; profilePicUrl?: string } | null) => {
+        if (j?.ok && typeof j.profilePicUrl === 'string' && /^https?:/i.test(j.profilePicUrl)) {
+          setCdnFromJson(j.profilePicUrl)
+        }
+      })
+      .catch(() => {
+        // ignore; hero falls back to initials
+      })
+    return () => ac.abort()
+  }, [apiBase, igName])
+
+  return (
+    <HeroAvatarImage
+      displayName={displayName}
+      igProxyUrl={igProxyUrl}
+      cdnFromJson={cdnFromJson}
+      staticResolved={staticResolved}
+    />
+  )
+}
+
+function Hero({ profile }: HeroProps) {
+  const staticResolved = useMemo(() => {
+    const raw = profile.avatarSrc?.trim()
+    if (!raw) return null
+    if (/^https?:\/\//i.test(raw)) return raw
+    return publicAssetUrl(raw)
+  }, [profile.avatarSrc])
+
+  const apiBase = useMemo(() => getInstagramApiBase(profile), [profile])
+  const igName = useMemo(() => instagramUsernameFromProfile(profile), [profile])
+  const sourceKey = useMemo(
+    () => `${apiBase ?? '∅'}:${igName ?? '∅'}`,
+    [apiBase, igName],
+  )
+
+  const igProxyUrl = useMemo(() => getInstagramProxyImageUrl(profile), [profile])
 
   return (
     <div className="hero">
-      <div
-        className={`avatar${showPhoto ? ' avatar--photo' : ''}`}
-        {...(showPhoto ? {} : { 'aria-hidden': true })}
-      >
-        {showPhoto && photoSrc ? (
-          <img
-            src={photoSrc}
-            alt={`${profile.displayName} profile photo`}
-            width={320}
-            height={320}
-            decoding="async"
-            {...(igProxyUrl && photoSrc === igProxyUrl
-              ? { onError: () => setFailedProxyUrl(igProxyUrl) }
-              : {})}
-          />
-        ) : (
-          <span>{initials}</span>
-        )}
-      </div>
+      <HeroAvatarSection
+        key={sourceKey}
+        displayName={profile.displayName}
+        staticResolved={staticResolved}
+        igProxyUrl={igProxyUrl}
+        apiBase={apiBase}
+        igName={igName}
+      />
       <div className="hero-copy">
         <HeroTitle heading={profile.displayName} aliases={profile.aliases} />
         {profile.tagline ? <p className="tagline hero-tagline">{profile.tagline}</p> : null}

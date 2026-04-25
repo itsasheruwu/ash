@@ -1,18 +1,55 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
 import { profile } from './data/profile'
 
+vi.mock('@/lib/extractVibrantColorsFromImageUrl', async (importOriginal) => {
+  const m = await importOriginal<typeof import('./lib/extractVibrantColorsFromImageUrl')>()
+  return {
+    ...m,
+    extractVibrantColorsFromImageUrl: () => Promise.resolve(null),
+  }
+})
+
+/** Flushes SpotifyStatusPill / fetch microtasks so async state updates stay inside `act`. */
+function flushAsyncUi() {
+  return act(async () => {
+    await new Promise<void>((r) => {
+      setTimeout(r, 0)
+    })
+  })
+}
+
+beforeEach(() => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(
+      (): Promise<Response> =>
+        Promise.resolve({
+          ok: true,
+          headers: new Headers({ 'content-type': 'application/json' }),
+          json: () => Promise.resolve({ ok: true, state: 'idle' as const, track: null }),
+        } as Response),
+    ) as unknown as typeof fetch,
+  )
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
 describe('Ash social hub', () => {
-  it('renders the display name', () => {
+  it('renders the display name', async () => {
     render(<App />)
+    await flushAsyncUi()
     expect(screen.getByRole('heading', { level: 1, name: 'Ash' })).toBeInTheDocument()
   })
 
   it('shows hero aliases when the trigger is focused and hides on Escape', async () => {
     const user = userEvent.setup()
     render(<App />)
+    await flushAsyncUi()
     const trigger = screen.getByRole('button', { name: /other names and aliases/i })
     fireEvent.focus(trigger)
     expect(screen.getByRole('tooltip')).toBeInTheDocument()
@@ -24,6 +61,7 @@ describe('Ash social hub', () => {
   it('renders active Instagram, Spotify, Apple Music, and YouTube destinations', async () => {
     const user = userEvent.setup()
     render(<App />)
+    await flushAsyncUi()
 
     const instagram = screen.getByRole('link', { name: /open instagram/i })
     expect(instagram).toHaveAttribute('href', 'https://www.instagram.com/itsasheruwu/')
@@ -84,27 +122,31 @@ describe('Ash social hub', () => {
     expect(youtubeArtist).toHaveAttribute('target', '_blank')
   })
 
-  it('has no coming-soon links in profile (aligns with live count)', () => {
+  it('has no coming-soon links in profile (aligns with live count)', async () => {
     // If you add `coming_soon` entries, update this and the "5 live links" test.
     expect(profile.links.filter((l) => l.status === 'coming_soon')).toHaveLength(0)
     render(<App />)
+    await flushAsyncUi()
     expect(screen.getByText('5 live links')).toBeInTheDocument()
     expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument()
   })
 
-  it('shows a compact links summary', () => {
+  it('shows a compact links summary', async () => {
     render(<App />)
+    await flushAsyncUi()
     expect(screen.getByText('5 live links')).toBeInTheDocument()
   })
 
-  it('does not render TikTok or X cards', () => {
+  it('does not render TikTok or X cards', async () => {
     render(<App />)
+    await flushAsyncUi()
     expect(screen.queryByText(/tiktok/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/^x$/i)).not.toBeInTheDocument()
   })
 
-  it('renders a contact mailto button with the exact email', () => {
+  it('renders a contact mailto button with the exact email', async () => {
     render(<App />)
+    await flushAsyncUi()
     const contact = screen.getByRole('link', { name: /email me/i })
     expect(contact).toHaveAttribute('href', 'mailto:s956t2hpg9@privaterelay.appleid.com')
   })

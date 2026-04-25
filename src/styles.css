@@ -9,10 +9,10 @@
     @apply gap-0 border-border/55 py-0 shadow-[0_2px_28px_rgba(0,0,0,0.28)] ring-1 ring-white/[0.06];
   }
   .links-page-card__header {
-    @apply gap-0 border-border/50 border-b px-5 pb-4 pt-5;
+    @apply gap-0 border-border/50 border-b px-5 py-2.5;
   }
   .links-page-card__body {
-    @apply px-5 pb-5 pt-4;
+    @apply px-5 pb-4 pt-3;
   }
 }
 
@@ -883,6 +883,42 @@ button:focus-visible {
   text-overflow: ellipsis;
 }
 
+.spotify-status-pill__title--art-gradient {
+  background-image: linear-gradient(
+    90deg,
+    var(--spotify-title-art-0),
+    var(--spotify-title-art-1),
+    var(--spotify-title-art-2),
+    var(--spotify-title-art-3)
+  );
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  background-position: 0% 50%;
+  animation: spotify-title-gradient-shift 14s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotify-status-pill__title--art-gradient {
+    animation: none;
+    background-size: 100% 100%;
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes spotify-title-gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
 .spotify-status-pill__artist {
   font-size: 0.6875rem;
   color: var(--muted-foreground);
@@ -1132,6 +1168,16 @@ button.social-card:hover .social-card__chooser-cue {
   margin-top: var(--space-4);
   padding-top: var(--space-4);
   border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Links page card: tighter contact band (scoped; global .link-panel__contact stays default for reuse) */
+.links-page-card .link-panel__contact {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+}
+
+.links-page-card .contact-wrap {
+  gap: var(--space-3);
 }
 
 .contact-wrap {

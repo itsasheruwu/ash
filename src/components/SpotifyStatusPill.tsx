@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { FaChevronDown, FaSpotify } from 'react-icons/fa6'
 
+import { extractVibrantColorsFromImageUrl, padStopsToFourColors } from '@/lib/extractVibrantColorsFromImageUrl'
 import { cn } from '@/lib/utils'
 
 const POLL_MS = 45_000
@@ -49,6 +50,7 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
   const [data, setData] = useState<StatusPayload | null>(null)
   const [loading, setLoading] = useState(Boolean(endpoint))
   const [expanded, setExpanded] = useState(false)
+  const [titleArtStops, setTitleArtStops] = useState<CSSProperties | null>(null)
 
   const fetchStatus = useCallback(
     async (signal: AbortSignal) => {
@@ -94,6 +96,45 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
       window.clearInterval(id)
     }
   }, [endpoint, fetchStatus])
+
+  const trackImageUrlForArt = (() => {
+    if (!data?.ok || !data.track) return null
+    const u = data.track.image?.trim()
+    if (!u || !/^https:\/\//i.test(u)) return null
+    return u
+  })()
+
+  useEffect(() => {
+    if (!trackImageUrlForArt) {
+      setTitleArtStops(null)
+      return
+    }
+    const ac = new AbortController()
+    let cancelled = false
+    setTitleArtStops(null)
+    void extractVibrantColorsFromImageUrl(trackImageUrlForArt, ac.signal)
+      .then((colors) => {
+        if (cancelled || ac.signal.aborted) return
+        if (!colors || colors.length < 2) {
+          setTitleArtStops(null)
+          return
+        }
+        const [c0, c1, c2, c3] = padStopsToFourColors(colors)
+        setTitleArtStops({
+          '--spotify-title-art-0': c0,
+          '--spotify-title-art-1': c1,
+          '--spotify-title-art-2': c2,
+          '--spotify-title-art-3': c3,
+        } as CSSProperties)
+      })
+      .catch(() => {
+        if (!cancelled) setTitleArtStops(null)
+      })
+    return () => {
+      cancelled = true
+      ac.abort()
+    }
+  }, [trackImageUrlForArt])
 
   useEffect(() => {
     if (!expanded) return
@@ -162,6 +203,11 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
         ? `Paused: ${track.name} — ${track.artist}`
         : `Last played: ${track.name} — ${track.artist}`
 
+  const titleClassName = cn(
+    'spotify-status-pill__title',
+    titleArtStops && 'spotify-status-pill__title--art-gradient',
+  )
+
   const innerCore = (
     <>
       <FaSpotify className="spotify-status-pill__brand" aria-hidden="true" />
@@ -171,7 +217,9 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
       />
       <span className="spotify-status-pill__copy">
         <span className="spotify-status-pill__line1">
-          <span className="spotify-status-pill__title">{track.name}</span>
+          <span className={titleClassName} style={titleArtStops ?? undefined}>
+            {track.name}
+          </span>
         </span>
         {track.artist ? (
           <span className="spotify-status-pill__artist">{track.artist}</span>
