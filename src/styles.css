@@ -16,6 +16,11 @@
   }
 }
 
+.hero-title__alias-popover,
+.hero-title__alias-list {
+  text-align: left;
+}
+
 :root {
   --bg-deep: #0a0a0b;
   --bg-elevated: #111113;
