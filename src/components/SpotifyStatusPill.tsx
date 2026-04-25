@@ -5,6 +5,7 @@ import { extractVibrantColorsFromImageUrl, padStopsToFourColors } from '@/lib/ex
 import { cn } from '@/lib/utils'
 
 const POLL_MS = 45_000
+const DEFAULT_SPOTIFY_STATUS_URL = 'https://ash-chi-nine.vercel.app/api/spotify'
 
 type Track = {
   name: string
@@ -44,7 +45,7 @@ type SpotifyStatusPillProps = {
 }
 
 function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
-  const endpoint = import.meta.env.VITE_SPOTIFY_STATUS_URL
+  const endpoint = import.meta.env.VITE_SPOTIFY_STATUS_URL || DEFAULT_SPOTIFY_STATUS_URL
   const outerRef = useRef<HTMLDivElement>(null)
 
   const [data, setData] = useState<StatusPayload | null>(null)
