@@ -50,7 +50,7 @@ function releaseLabel(iso: string | null | undefined) {
 
 function displayTrackTitle(name: string) {
   return name
-    .replace(/\s*[\[(]\s*(?:feat\.?|ft\.?|featuring)\s+[^)\]]+[\])]/gi, '')
+    .replace(/\s*(?:\(|\[)\s*(?:feat\.?|ft\.?|featuring)\s+[^)\]]+(?:\)|\])/gi, '')
     .replace(/\s{2,}/g, ' ')
     .trim() || name
 }
