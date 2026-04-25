@@ -1,6 +1,8 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import App from './App'
+import { profile } from './data/profile'
 
 describe('Ash social hub', () => {
   it('renders the display name', () => {
@@ -8,22 +10,91 @@ describe('Ash social hub', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Ash' })).toBeInTheDocument()
   })
 
-  it('renders active Instagram and Spotify links', () => {
+  it('shows hero aliases when the trigger is focused and hides on Escape', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    const trigger = screen.getByRole('button', { name: /other names and aliases/i })
+    fireEvent.focus(trigger)
+    expect(screen.getByRole('tooltip')).toBeInTheDocument()
+    expect(screen.getByText('cal')).toBeInTheDocument()
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+  })
+
+  it('renders active Instagram, Spotify, Apple Music, and YouTube destinations', async () => {
+    const user = userEvent.setup()
     render(<App />)
 
     const instagram = screen.getByRole('link', { name: /open instagram/i })
-    const spotify = screen.getByRole('link', { name: /open spotify/i })
-
-    expect(instagram).toHaveAttribute('href', expect.stringContaining('instagram.com'))
-    expect(spotify).toHaveAttribute('href', expect.stringContaining('open.spotify.com'))
+    expect(instagram).toHaveAttribute('href', 'https://www.instagram.com/itsasheruwu/')
     expect(instagram).toHaveAttribute('target', '_blank')
     expect(instagram).toHaveAttribute('rel', 'noopener noreferrer')
+
+    const discord = screen.getByRole('link', { name: /open discord/i })
+    expect(discord).toHaveAttribute('href', 'https://discord.com/users/1438433855445930059')
+    expect(discord).toHaveAttribute('target', '_blank')
+    expect(discord).toHaveAttribute('rel', 'noopener noreferrer')
+
+    const spotifyTrigger = screen.getByRole('button', { name: /open spotify/i })
+    await user.click(spotifyTrigger)
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    const personal = screen.getByRole('link', { name: /^personal$/i })
+    const artist = screen.getByRole('link', { name: /^artist$/i })
+    expect(personal).toHaveAttribute(
+      'href',
+      'https://open.spotify.com/user/316plljirvcpala37jqitv2fhese?si=512c3823d07749a2'
+    )
+    expect(artist).toHaveAttribute(
+      'href',
+      'https://open.spotify.com/user/316plljirvcpala37jqitv2fhese?si=512c3823d07749a2'
+    )
+    expect(personal).toHaveAttribute('target', '_blank')
+    expect(artist).toHaveAttribute('target', '_blank')
+
+    const closeButton = screen.getByRole('button', { name: /close/i })
+    await user.click(closeButton)
+
+    const appleMusicTrigger = screen.getByRole('button', { name: /open apple music/i })
+    await user.click(appleMusicTrigger)
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    const applePersonal = screen.getByRole('link', { name: /^personal$/i })
+    const appleArtist = screen.getByRole('link', { name: /^artist$/i })
+    expect(applePersonal).toHaveAttribute('href', 'https://music.apple.com/profile/itsasheruwu')
+    expect(appleArtist).toHaveAttribute('href', 'https://music.apple.com/profile/itsasheruwu')
+    expect(applePersonal).toHaveAttribute('target', '_blank')
+    expect(appleArtist).toHaveAttribute('target', '_blank')
+
+    const closeAppleDialogButton = screen.getByRole('button', { name: /close/i })
+    await user.click(closeAppleDialogButton)
+
+    const youtubeTrigger = screen.getByRole('button', { name: /open youtube/i })
+    await user.click(youtubeTrigger)
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    const youtubePersonal = screen.getByRole('link', { name: /^personal$/i })
+    const youtubeArtist = screen.getByRole('link', { name: /^artist$/i })
+    expect(youtubePersonal).toHaveAttribute('href', 'https://www.youtube.com/@itsasheruwu')
+    expect(youtubeArtist).toHaveAttribute(
+      'href',
+      'https://www.youtube.com/@itsasheruwu'
+    )
+    expect(youtubePersonal).toHaveAttribute('target', '_blank')
+    expect(youtubeArtist).toHaveAttribute('target', '_blank')
   })
 
-  it('renders youtube as non-clickable coming soon card', () => {
+  it('has no coming-soon links in profile (aligns with live count)', () => {
+    // If you add `coming_soon` entries, update this and the "5 live links" test.
+    expect(profile.links.filter((l) => l.status === 'coming_soon')).toHaveLength(0)
     render(<App />)
-    expect(screen.getByLabelText(/youtube coming soon/i)).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: /open youtube/i })).not.toBeInTheDocument()
+    expect(screen.getByText('5 live links')).toBeInTheDocument()
+    expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument()
+  })
+
+  it('shows a compact links summary', () => {
+    render(<App />)
+    expect(screen.getByText('5 live links')).toBeInTheDocument()
   })
 
   it('does not render TikTok or X cards', () => {

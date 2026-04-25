@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { FaChevronDown, FaSpotify } from 'react-icons/fa6'
 
+import { cn } from '@/lib/utils'
+
 const POLL_MS = 45_000
 
 type Track = {
@@ -21,10 +23,6 @@ type Track = {
 type StatusPayload =
   | { ok: true; state: 'playing' | 'paused' | 'recent' | 'idle'; track: Track | null }
   | { ok: false; error?: string }
-
-function cx(...parts: (string | undefined | null | false)[]) {
-  return parts.filter((p): p is string => typeof p === 'string' && p !== '').join(' ')
-}
 
 function formatDuration(ms: number | null | undefined) {
   if (ms == null || ms <= 0) return null
@@ -52,26 +50,49 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
   const [loading, setLoading] = useState(Boolean(endpoint))
   const [expanded, setExpanded] = useState(false)
 
-  const fetchStatus = useCallback(async () => {
-    if (!endpoint) return
+  const fetchStatus = useCallback(
+    async (signal: AbortSignal) => {
+      if (!endpoint) return
 
-    try {
-      const res = await fetch(endpoint, { credentials: 'omit' })
-      const json = (await res.json()) as StatusPayload
-      setData(json)
-    } catch {
-      setData({ ok: false, error: 'network' })
-    } finally {
-      setLoading(false)
-    }
-  }, [endpoint])
+      try {
+        const res = await fetch(endpoint, { credentials: 'omit', signal })
+        if (!res.ok) {
+          setData({ ok: false, error: `http_${res.status}` })
+          return
+        }
+        const ct = res.headers.get('content-type')
+        if (ct && !ct.includes('application/json')) {
+          setData({ ok: false, error: 'bad_content_type' })
+          return
+        }
+        const json = (await res.json()) as StatusPayload
+        setData(json)
+      } catch (e) {
+        if (e && typeof e === 'object' && 'name' in e && (e as { name: string }).name === 'AbortError') {
+          return
+        }
+        setData({ ok: false, error: 'network' })
+      } finally {
+        if (!signal.aborted) {
+          setLoading(false)
+        }
+      }
+    },
+    [endpoint],
+  )
 
   useEffect(() => {
     if (!endpoint) return
 
-    void fetchStatus()
-    const id = window.setInterval(() => void fetchStatus(), POLL_MS)
-    return () => window.clearInterval(id)
+    const ac = new AbortController()
+    void fetchStatus(ac.signal)
+    const id = window.setInterval(() => {
+      void fetchStatus(ac.signal)
+    }, POLL_MS)
+    return () => {
+      ac.abort()
+      window.clearInterval(id)
+    }
   }, [endpoint, fetchStatus])
 
   useEffect(() => {
@@ -96,7 +117,7 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
   }, [expanded])
 
   const outer = (node: ReactNode) => (
-    <div ref={outerRef} className={cx('spotify-status-pill-outer', className)}>
+    <div ref={outerRef} className={cn('spotify-status-pill-outer', className)}>
       {node}
     </div>
   )
@@ -167,14 +188,14 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
     return (
       <div
         ref={outerRef}
-        className={cx(
+        className={cn(
           'spotify-status-pill-outer',
           className,
           expanded && 'spotify-status-pill-outer--expanded',
         )}
       >
         <div
-          className={cx(
+          className={cn(
             'spotify-morph',
             expanded && 'spotify-morph--expanded',
             `spotify-morph--${state}`,
@@ -190,7 +211,7 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
           >
             {innerCore}
             <FaChevronDown
-              className={cx('spotify-morph__chev', expanded && 'spotify-morph__chev--open')}
+              className={cn('spotify-morph__chev', expanded && 'spotify-morph__chev--open')}
               aria-hidden="true"
             />
           </button>
@@ -205,7 +226,7 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
                 aria-hidden={!expanded}
               >
                 <div
-                  className={cx(
+                  className={cn(
                     'spotify-morph__detail',
                     !track.image && 'spotify-morph__detail--no-art',
                   )}
@@ -313,7 +334,7 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
 
   return outer(
     <div
-      className={cx('spotify-status-pill', `spotify-status-pill--${state}`)}
+      className={cn('spotify-status-pill', `spotify-status-pill--${state}`)}
       role="status"
       aria-label={label}
     >

@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { FaFileAudio } from 'react-icons/fa6'
 
-const AUDIO_SRC = `${import.meta.env.BASE_URL}digicore_tag_v2.mp3`
+const AUDIO_FILENAME = 'digicore_tag_v2.mp3'
+const AUDIO_SRC = `${import.meta.env.BASE_URL}${AUDIO_FILENAME}`
 
-/** Invisible bottom-left hotspot: hover shows a file chip; double-click plays the tag MP3. */
 function CornerTagAudio() {
   const audioRef = useRef<HTMLAudioElement>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout>>(null)
@@ -50,12 +50,12 @@ function CornerTagAudio() {
             onMouseEnter={reveal}
             onMouseLeave={scheduleClose}
             onDoubleClick={play}
-            aria-label="Play producter_tag.mp3 (double-click)"
+            aria-label={`Play ${AUDIO_FILENAME} (double-click)`}
           >
             <span className="corner-tag-audio__icon" aria-hidden="true">
               <FaFileAudio />
             </span>
-            <span className="corner-tag-audio__name">producter_tag.mp3</span>
+            <span className="corner-tag-audio__name">{AUDIO_FILENAME}</span>
             <span className="corner-tag-audio__hint">Double-click to play</span>
           </button>
         ) : null}

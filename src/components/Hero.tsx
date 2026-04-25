@@ -43,6 +43,18 @@ function HeroTitle({
 
   useEffect(() => () => cancelClose(), [cancelClose])
 
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setOpen(false)
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open])
+
   const list = aliases?.filter(Boolean) ?? []
   const showTrigger = list.length > 0
 
@@ -51,15 +63,19 @@ function HeroTitle({
       <span className="hero-title__cluster">
         <span className="hero-title__text">{heading}</span>
         {showTrigger ? (
-          <span className="hero-title__alias-slot">
+          <span
+            className="hero-title__alias-slot"
+            onMouseEnter={reveal}
+            onMouseLeave={scheduleClose}
+          >
             <button
               type="button"
               className="hero-title__alias-trigger"
               aria-label="Other names and aliases"
               aria-expanded={open}
               aria-controls="hero-alias-popover"
-              onMouseEnter={reveal}
-              onMouseLeave={scheduleClose}
+              onFocus={reveal}
+              onBlur={scheduleClose}
             >
               <FaCircleExclamation aria-hidden="true" />
             </button>
@@ -68,8 +84,6 @@ function HeroTitle({
                 id="hero-alias-popover"
                 role="tooltip"
                 className="hero-title__alias-popover"
-                onMouseEnter={reveal}
-                onMouseLeave={scheduleClose}
               >
                 <span className="hero-title__alias-popover-label">Aliases</span>
                 <ul className="hero-title__alias-list">
@@ -90,14 +104,10 @@ function Hero({ profile }: HeroProps) {
   const staticFallback = profile.avatarSrc?.trim() || null
   const igProxyUrl = useMemo(() => instagramAvatarImageUrl(profile), [profile])
 
-  const [igBroken, setIgBroken] = useState(false)
-
-  useEffect(() => {
-    setIgBroken(false)
-  }, [igProxyUrl])
+  const [failedProxyUrl, setFailedProxyUrl] = useState<string | null>(null)
 
   const photoSrc =
-    igProxyUrl && !igBroken ? igProxyUrl : staticFallback || null
+    igProxyUrl && failedProxyUrl !== igProxyUrl ? igProxyUrl : staticFallback || null
   const showPhoto = Boolean(photoSrc)
 
   const initials =
@@ -106,7 +116,7 @@ function Hero({ profile }: HeroProps) {
       : profile.displayName.trim().toUpperCase().slice(0, 3) || '···'
 
   return (
-    <div className="hero hero--links">
+    <div className="hero">
       <div
         className={`avatar${showPhoto ? ' avatar--photo' : ''}`}
         {...(showPhoto ? {} : { 'aria-hidden': true })}
@@ -119,7 +129,7 @@ function Hero({ profile }: HeroProps) {
             height={320}
             decoding="async"
             {...(igProxyUrl && photoSrc === igProxyUrl
-              ? { onError: () => setIgBroken(true) }
+              ? { onError: () => setFailedProxyUrl(igProxyUrl) }
               : {})}
           />
         ) : (

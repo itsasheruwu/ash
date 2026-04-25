@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0b"/>
+      <stop offset="55%" style="stop-color:#12121a"/>
+      <stop offset="100%" style="stop-color:#0a0a0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#g)"/>
+  <rect x="0" y="0" width="1200" height="4" fill="#e85d6f" opacity="0.6"/>
+  <text
+    x="120"
+    y="340"
+    fill="#e85d6f"
+    font-family="ui-sans-serif, system-ui, -apple-system, sans-serif"
+    font-size="120"
+    font-weight="600"
+    letter-spacing="0.02em"
+  >ash</text>
+  <text
+    x="120"
+    y="430"
+    fill="#a1a1aa"
+    font-family="ui-sans-serif, system-ui, -apple-system, sans-serif"
+    font-size="36"
+    font-weight="400"
+  >links &amp; contact</text>
+</svg>

@@ -15,6 +15,9 @@ dist-ssr
 .env.spotify.server
 *.local
 
+# Cursor (local only)
+.cursor/hooks/state/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
