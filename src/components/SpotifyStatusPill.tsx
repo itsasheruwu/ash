@@ -250,7 +250,6 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
   }
 
   const { state, track } = data
-  const trackTitle = displayTrackTitle(track.name)
 
   if (!track) {
     return outer(
@@ -260,6 +259,8 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
       </div>,
     )
   }
+
+  const trackTitle = displayTrackTitle(track.name)
 
   const label =
     isTransitioning
