@@ -48,6 +48,7 @@ export const profile: ProfileConfig = {
   displayName: 'Ash',
   aliases: ['cal'],
   instagramUsername: 'itsasheruwu',
+  avatarSrc: 'instagram-avatar.jpg',
   // Optional: only if `VITE_INSTAGRAM_AVATAR_URL` is unset and your avatar API is not the same host as `VITE_SPOTIFY_STATUS_URL` (Hero derives `/api/instagram-avatar` from the Spotify URL when possible).
   // instagramAvatarApiBase: 'https://<your-project>.vercel.app/api/instagram-avatar',
   tagline: 'Most active on Instagram.',
