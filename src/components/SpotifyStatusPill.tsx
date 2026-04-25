@@ -4,7 +4,9 @@ import { FaChevronDown, FaSpotify } from 'react-icons/fa6'
 import { extractVibrantColorsFromImageUrl, padStopsToFourColors } from '@/lib/extractVibrantColorsFromImageUrl'
 import { cn } from '@/lib/utils'
 
-const POLL_MS = 45_000
+const POLL_MS = 5_000
+const TRANSITION_POLL_MS = 1_500
+const TRANSITION_WINDOW_MS = 12_000
 const DEFAULT_SPOTIFY_STATUS_URL = 'https://ash-chi-nine.vercel.app/api/spotify'
 
 type Track = {
@@ -23,7 +25,13 @@ type Track = {
 }
 
 type StatusPayload =
-  | { ok: true; state: 'playing' | 'paused' | 'recent' | 'idle'; track: Track | null }
+  | {
+      ok: true
+      state: 'playing' | 'paused' | 'recent' | 'idle'
+      track: Track | null
+      progressMs?: number | null
+      fetchedAt?: number | null
+    }
   | { ok: false; error?: string }
 
 function formatDuration(ms: number | null | undefined) {
@@ -40,6 +48,26 @@ function releaseLabel(iso: string | null | undefined) {
   return /^\d{4}$/.test(y) ? y : iso
 }
 
+function withCacheBust(endpoint: string) {
+  try {
+    const u = new URL(endpoint, window.location.origin)
+    u.searchParams.set('_', Date.now().toString())
+    return u.toString()
+  } catch {
+    const sep = endpoint.includes('?') ? '&' : '?'
+    return `${endpoint}${sep}_=${Date.now()}`
+  }
+}
+
+function estimatedRemainingMs(data: StatusPayload | null, nowMs: number) {
+  if (!data?.ok || data.state !== 'playing' || !data.track?.durationMs) return null
+  if (typeof data.progressMs !== 'number') return null
+  const fetchedAt = typeof data.fetchedAt === 'number' ? data.fetchedAt : nowMs
+  const elapsed = Math.max(0, nowMs - fetchedAt)
+  const estimatedProgress = Math.min(data.track.durationMs, data.progressMs + elapsed)
+  return Math.max(0, data.track.durationMs - estimatedProgress)
+}
+
 type SpotifyStatusPillProps = {
   className?: string
 }
@@ -52,13 +80,18 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
   const [loading, setLoading] = useState(Boolean(endpoint))
   const [expanded, setExpanded] = useState(false)
   const [titleArtStops, setTitleArtStops] = useState<CSSProperties | null>(null)
+  const [nowMs, setNowMs] = useState(() => Date.now())
 
   const fetchStatus = useCallback(
     async (signal: AbortSignal) => {
       if (!endpoint) return
 
       try {
-        const res = await fetch(endpoint, { credentials: 'omit', signal })
+        const res = await fetch(withCacheBust(endpoint), {
+          cache: 'no-store',
+          credentials: 'omit',
+          signal,
+        })
         if (!res.ok) {
           setData({ ok: false, error: `http_${res.status}` })
           return
@@ -97,6 +130,30 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
       window.clearInterval(id)
     }
   }, [endpoint, fetchStatus])
+
+  const remainingMs = estimatedRemainingMs(data, nowMs)
+  const isTransitioning =
+    data?.ok === true &&
+    data.state === 'playing' &&
+    remainingMs != null &&
+    remainingMs <= TRANSITION_WINDOW_MS
+
+  useEffect(() => {
+    const id = window.setInterval(() => setNowMs(Date.now()), 1_000)
+    return () => window.clearInterval(id)
+  }, [])
+
+  useEffect(() => {
+    if (!endpoint || !isTransitioning) return
+    const ac = new AbortController()
+    const id = window.setInterval(() => {
+      void fetchStatus(ac.signal)
+    }, TRANSITION_POLL_MS)
+    return () => {
+      ac.abort()
+      window.clearInterval(id)
+    }
+  }, [endpoint, fetchStatus, isTransitioning])
 
   const trackImageUrlForArt = (() => {
     if (!data?.ok || !data.track) return null
@@ -198,8 +255,10 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
   }
 
   const label =
-    state === 'playing'
-      ? `Now playing: ${track.name} — ${track.artist}`
+    isTransitioning
+      ? `Transitioning soon: ${track.name} — ${track.artist}`
+      : state === 'playing'
+        ? `Now playing: ${track.name} — ${track.artist}`
       : state === 'paused'
         ? `Paused: ${track.name} — ${track.artist}`
         : `Last played: ${track.name} — ${track.artist}`
@@ -247,6 +306,7 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
           className={cn(
             'spotify-morph',
             expanded && 'spotify-morph--expanded',
+            isTransitioning && 'spotify-morph--transitioning',
             `spotify-morph--${state}`,
           )}
         >
@@ -283,7 +343,9 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
                   <div className="spotify-morph__meta">
                     <p className="spotify-morph__state-badge">
                       {state === 'playing'
-                        ? 'Now playing'
+                        ? isTransitioning
+                          ? 'Transitioning'
+                          : 'Now playing'
                         : state === 'paused'
                           ? 'Paused'
                           : 'Last played'}

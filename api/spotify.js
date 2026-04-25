@@ -43,9 +43,14 @@ function formatTrack(item) {
   }
 }
 
+function cacheControl(res) {
+  res.setHeader('Cache-Control', 'no-store, max-age=0')
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
+  cacheControl(res)
 
   if (req.method === 'OPTIONS') {
     res.status(204).end()
@@ -104,6 +109,9 @@ export default async function handler(req, res) {
           ok: true,
           state: body.is_playing ? 'playing' : 'paused',
           track,
+          progressMs:
+            typeof body.progress_ms === 'number' ? body.progress_ms : null,
+          fetchedAt: Date.now(),
         })
         return
       }
@@ -127,6 +135,8 @@ export default async function handler(req, res) {
       ok: true,
       state: track ? 'recent' : 'idle',
       track,
+      progressMs: null,
+      fetchedAt: Date.now(),
     })
   } catch (e) {
     console.error('spotify handler error', e)

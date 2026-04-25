@@ -552,6 +552,15 @@ button:focus-visible {
   border-color: var(--border-strong);
 }
 
+.spotify-morph--transitioning {
+  border-color: rgba(29, 185, 84, 0.46);
+  background:
+    linear-gradient(120deg, rgba(29, 185, 84, 0.14), transparent 34%, rgba(255, 255, 255, 0.05) 54%, transparent 74%),
+    var(--surface-card);
+  background-size: 220% 100%, auto;
+  animation: spotify-transition-sweep 1.8s ease-in-out infinite;
+}
+
 .spotify-morph__header {
   display: flex;
   align-items: center;
@@ -656,6 +665,10 @@ button:focus-visible {
 
 .spotify-morph--playing .spotify-morph__state-badge {
   color: #1db954;
+}
+
+.spotify-morph--transitioning .spotify-morph__state-badge {
+  color: #73f3a3;
 }
 
 .spotify-morph--paused .spotify-morph__state-badge {
@@ -833,6 +846,11 @@ button:focus-visible {
   animation: spotify-pulse 1.6s ease-in-out infinite;
 }
 
+.spotify-morph--transitioning .spotify-status-pill__dot--live {
+  box-shadow: 0 0 0 4px rgba(29, 185, 84, 0.14);
+  animation: spotify-transition-dot 0.9s ease-in-out infinite;
+}
+
 .spotify-status-pill__copy {
   display: flex;
   flex-direction: column;
@@ -931,6 +949,35 @@ button:focus-visible {
 
 .spotify-morph--playing .spotify-status-pill__line1::before {
   color: #1db954;
+}
+
+.spotify-morph--transitioning .spotify-status-pill__line1::before {
+  content: 'Next';
+  color: #73f3a3;
+}
+
+@keyframes spotify-transition-sweep {
+  0%,
+  100% {
+    background-position: 0% 50%, 0 0;
+  }
+
+  50% {
+    background-position: 100% 50%, 0 0;
+  }
+}
+
+@keyframes spotify-transition-dot {
+  0%,
+  100% {
+    transform: scale(0.86);
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
 }
 
 .app-shell--links .social-grid {
