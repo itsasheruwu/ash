@@ -256,7 +256,7 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
     return outer(
       <div className="spotify-status-pill spotify-status-pill--idle" role="status">
         <FaSpotify className="spotify-status-pill__brand" aria-hidden="true" />
-        <span className="spotify-status-pill__text">Nothing playing lately</span>
+        <span className="spotify-status-pill__text">Last played unavailable</span>
       </div>,
     )
   }
