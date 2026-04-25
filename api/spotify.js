@@ -17,6 +17,16 @@ function pickAlbumImage(images) {
   return sorted[0]?.url ?? null
 }
 
+function displayTrackTitle(name) {
+  if (typeof name !== 'string') return name
+  return (
+    name
+      .replace(/\s*[\[(]\s*(?:feat\.?|ft\.?|featuring)\s+[^)\]]+[\])]/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim() || name
+  )
+}
+
 function formatTrack(item) {
   if (!item?.name) return null
   const artist =
@@ -24,7 +34,7 @@ function formatTrack(item) {
   const album = item.album
   const image = pickAlbumImage(album?.images)
   return {
-    name: item.name,
+    name: displayTrackTitle(item.name),
     artist,
     url: item.external_urls?.spotify ?? null,
     album: album?.name ?? null,
