@@ -23,4 +23,6 @@
 - Live site: `https://itsasheruwu.github.io/ash` (GitHub repo `itsasheruwu/ash`). `.github/workflows/pages.yml` deploys on push to `main` via GitHub Actions.
 - Vite inlines `VITE_*` at build time. Set `VITE_SPOTIFY_STATUS_URL` and `VITE_INSTAGRAM_AVATAR_URL` as Actions repo secrets so production matches local (Spotify status pill, Instagram proxy avatar in the hero).
 - Track title colors in `SpotifyStatusPill` can be derived from album art via `src/lib/extractVibrantColorsFromImageUrl.ts`.
-- Developer portfolio block: `ProjectsSection` below the links card (heading “Development Projects”); project data in `src/data/projects.ts`, languages and collapsible dev tools in `src/data/developer.ts`; uses transitions-dev (`t-panel-slide`, `t-stagger`, `t-avatar-group`, `t-modal`).
+- On mobile (≤480px), the fixed Spotify pill uses `useSpotifyPillDock` to tuck into the left edge; drag or tap to reveal. Expanded track details span nearly full width.
+- Developer portfolio block: `ProjectsSection` below the links card (heading “Development Projects”); project data in `src/data/projects.ts`, languages and collapsible dev tools in `src/data/developer.ts`; uses transitions-dev (`t-panel-slide`, `t-stagger`, `t-avatar`, `t-tt`, `t-modal`). Tool icons: `CodexIcon`, `CursorIcon` under `src/components/icons/`, Claude via `SiClaude`.
+- Page title and meta use `ash links` (no em dash). Site copy avoids em dashes in favor of commas, colons, or short rephrasing.
