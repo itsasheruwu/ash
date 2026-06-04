@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Reac
 import { FaChevronDown, FaSpotify } from 'react-icons/fa6'
 
 import { extractVibrantColorsFromImageUrl, padStopsToFourColors } from '@/lib/extractVibrantColorsFromImageUrl'
+import { useSpotifyPillDock } from '@/lib/useSpotifyPillDock'
 import { cn } from '@/lib/utils'
 
 const POLL_MS = 5_000
@@ -222,8 +223,29 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
     }
   }, [expanded])
 
-  const outer = (node: ReactNode) => (
-    <div ref={outerRef} className={cn('spotify-status-pill-outer', className)}>
+  const isFixedCorner = className?.includes('spotify-status-pill--fixed-corner') ?? false
+  const dock = useSpotifyPillDock({
+    outerRef,
+    expanded,
+    enabled: isFixedCorner,
+  })
+
+  const wrapOuter = (node: ReactNode, extraClass?: string) => (
+    <div
+      ref={outerRef}
+      className={cn(
+        'spotify-status-pill-outer',
+        className,
+        extraClass,
+        dock.classNames.mobileDock,
+        dock.classNames.dragging,
+        dock.classNames.tucked,
+        dock.classNames.revealed,
+      )}
+      data-dock={dock.dataDock}
+      style={dock.style}
+      {...dock.handlers}
+    >
       {node}
     </div>
   )
@@ -233,7 +255,7 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
   }
 
   if (loading || data === null) {
-    return outer(
+    return wrapOuter(
       <div className="spotify-status-pill spotify-status-pill--loading" aria-busy="true">
         <FaSpotify className="spotify-status-pill__brand" aria-hidden="true" />
         <span className="spotify-status-pill__text">Loading Spotify…</span>
@@ -242,7 +264,7 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
   }
 
   if (!data.ok) {
-    return outer(
+    return wrapOuter(
       <div className="spotify-status-pill spotify-status-pill--error" role="status">
         <FaSpotify className="spotify-status-pill__brand" aria-hidden="true" />
         <span className="spotify-status-pill__text">Spotify unavailable</span>
@@ -253,7 +275,7 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
   const { state, track } = data
 
   if (!track) {
-    return outer(
+    return wrapOuter(
       <div className="spotify-status-pill spotify-status-pill--idle" role="status">
         <FaSpotify className="spotify-status-pill__brand" aria-hidden="true" />
         <span className="spotify-status-pill__text">Last played unavailable</span>
@@ -265,12 +287,12 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
 
   const label =
     isTransitioning
-      ? `Transitioning soon: ${trackTitle} — ${track.artist}`
+      ? `Transitioning soon: ${trackTitle}, ${track.artist}`
       : state === 'playing'
-        ? `Now playing: ${trackTitle} — ${track.artist}`
+        ? `Now playing: ${trackTitle}, ${track.artist}`
       : state === 'paused'
-        ? `Paused: ${trackTitle} — ${track.artist}`
-        : `Last played: ${trackTitle} — ${track.artist}`
+        ? `Paused: ${trackTitle}, ${track.artist}`
+        : `Last played: ${trackTitle}, ${track.artist}`
 
   const titleClassName = cn(
     'spotify-status-pill__title',
@@ -302,31 +324,27 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
   const panelId = 'spotify-track-detail-panel'
 
   if (track.url) {
-    return (
+    return wrapOuter(
       <div
-        ref={outerRef}
         className={cn(
-          'spotify-status-pill-outer',
-          className,
-          expanded && 'spotify-status-pill-outer--expanded',
+          'spotify-morph',
+          expanded && 'spotify-morph--expanded',
+          isTransitioning && 'spotify-morph--transitioning',
+          `spotify-morph--${state}`,
         )}
       >
-        <div
-          className={cn(
-            'spotify-morph',
-            expanded && 'spotify-morph--expanded',
-            isTransitioning && 'spotify-morph--transitioning',
-            `spotify-morph--${state}`,
-          )}
+        <button
+          type="button"
+          className="spotify-morph__header"
+          aria-expanded={expanded}
+          aria-controls={panelId}
+          aria-label={`${label}. ${expanded ? 'Collapse' : 'Expand'} details.`}
+          onClick={() => {
+            if (dock.consumeSuppressedClick()) return
+            if (dock.revealIfTucked()) return
+            setExpanded((open) => !open)
+          }}
         >
-          <button
-            type="button"
-            className="spotify-morph__header"
-            aria-expanded={expanded}
-            aria-controls={panelId}
-            aria-label={`${label}. ${expanded ? 'Collapse' : 'Expand'} details.`}
-            onClick={() => setExpanded((e) => !e)}
-          >
             {innerCore}
             <FaChevronDown
               className={cn('spotify-morph__chev', expanded && 'spotify-morph__chev--open')}
@@ -447,12 +465,12 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </div>,
+      expanded ? 'spotify-status-pill-outer--expanded' : undefined,
     )
   }
 
-  return outer(
+  return wrapOuter(
     <div
       className={cn('spotify-status-pill', `spotify-status-pill--${state}`)}
       role="status"

@@ -1,0 +1,42 @@
+export type Project = {
+  id: string
+  name: string
+  tagline: string
+  description: string
+  githubUrl: string
+  iconSrc: string
+  tags: string[]
+}
+
+export const projects: Project[] = [
+  {
+    id: 'graft',
+    name: 'Graft',
+    tagline: 'Small fixes, grafted onto the web.',
+    description:
+      'A Chrome extension for grafting small fixes onto the web: theme sync, element hiding, and YouTube auto-translation, with a clean settings UI and no bloat.',
+    githubUrl: 'https://github.com/itsasheruwu/graft',
+    iconSrc: `${import.meta.env.BASE_URL}projects/graft.png`,
+    tags: ['Chrome extension', 'TypeScript', 'React'],
+  },
+  {
+    id: 'ash-links',
+    name: 'Ash Links',
+    tagline: 'Personal link hub.',
+    description:
+      'This site is a minimal links page with live Spotify status, Instagram avatar proxy, and social profiles. Open source and deployed on GitHub Pages.',
+    githubUrl: 'https://github.com/itsasheruwu/ash',
+    iconSrc: `${import.meta.env.BASE_URL}projects/ash-links.svg`,
+    tags: ['React', 'Vite', 'GitHub Pages'],
+  },
+  {
+    id: 'autotrade',
+    name: 'Auto Trade Mod',
+    tagline: 'Repeat villager trades automatically.',
+    description:
+      'Client-only Fabric mod for Minecraft 1.21 that repeats a selected villager trade while the merchant UI is open. Mod Menu settings, rate modes, and GitHub auto-updater.',
+    githubUrl: 'https://github.com/itsasheruwu/Auto-Trade-Mod',
+    iconSrc: `${import.meta.env.BASE_URL}projects/autotrade.png`,
+    tags: ['Minecraft', 'Fabric', 'Java'],
+  },
+]

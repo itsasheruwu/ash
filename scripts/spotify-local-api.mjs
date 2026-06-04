@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Local mirror of api/spotify.js — loads secrets from .env.spotify.server.
+ * Local mirror of api/spotify.js. Loads secrets from .env.spotify.server.
  * Prefer `npm run dev`: Vite serves /api/spotify on the same origin.
  * Run: npm run spotify:local-api
  * Default port 3001; override: SPOTIFY_LOCAL_API_PORT=3002 npm run spotify:local-api
@@ -18,7 +18,7 @@ const envPath = resolve(root, '.env.spotify.server')
 
 function loadServerEnv() {
   if (!existsSync(envPath)) {
-    console.error(`Missing ${envPath} — run npm run setup:spotify first.`)
+    console.error(`Missing ${envPath}. Run npm run setup:spotify first.`)
     process.exit(1)
   }
   const raw = readFileSync(envPath, 'utf8')

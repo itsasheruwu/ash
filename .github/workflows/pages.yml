@@ -30,7 +30,7 @@ jobs:
       - name: Install
         run: npm ci
 
-      # Vite inlines import.meta.env.VITE_* at build time — same values as your local .env for prod APIs.
+      # Vite inlines import.meta.env.VITE_* at build time (same values as your local .env for prod APIs).
       # Add repo secrets: Settings → Secrets and variables → Actions → New repository secret
       #   VITE_SPOTIFY_STATUS_URL, VITE_INSTAGRAM_AVATAR_URL (absolute https URLs, not /api/… alone).
       - name: Verify and build

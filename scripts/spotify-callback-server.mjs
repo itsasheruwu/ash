@@ -26,7 +26,7 @@ const server = http.createServer((req, res) => {
       <h1>Spotify returned an error</h1><p><strong>${err}</strong></p><p>${desc}</p>
       </body></html>`,
     )
-    process.stderr.write(`\nOAuth error: ${err} — ${desc}\n`)
+    process.stderr.write(`\nOAuth error: ${err}: ${desc}\n`)
     return
   }
 

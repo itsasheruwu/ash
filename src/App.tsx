@@ -1,6 +1,8 @@
 import ContactSection from './components/ContactSection'
+import ExtrasSection from './components/ExtrasSection'
 import Footer from './components/Footer'
 import Hero from './components/Hero'
+import ProjectsSection from './components/ProjectsSection'
 import SocialGrid from './components/SocialGrid'
 import CornerTagAudio from './components/CornerTagAudio'
 import SpotifyStatusPill from './components/SpotifyStatusPill'
@@ -43,11 +45,14 @@ function App() {
           </CardHeader>
           <CardContent className="links-page-card__body">
             <SocialGrid links={profile.links} />
+            <ExtrasSection items={profile.extras} />
             <section className="link-panel__contact" aria-label="Contact">
               <ContactSection email={profile.email} />
             </section>
           </CardContent>
         </Card>
+
+        <ProjectsSection />
       </main>
 
       <Footer displayName={profile.displayName} />

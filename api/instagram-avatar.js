@@ -2,7 +2,7 @@
  * Vercel Serverless: GET /api/instagram-avatar?username=someuser
  *
  * - Default: JSON { ok, profilePicUrl } (for debugging / other clients).
- * - `?format=image` — binary image bytes proxied from Instagram’s CDN. Use this for
+ * - `?format=image`: binary image bytes proxied from Instagram’s CDN. Use this for
  *   `<img src>`: the CDN often blocks hotlinks from other sites without this proxy.
  *
  * Unofficial Instagram endpoints; may break if they change their API.

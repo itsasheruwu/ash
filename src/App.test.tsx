@@ -52,10 +52,10 @@ describe('Ash social hub', () => {
     await flushAsyncUi()
     const trigger = screen.getByRole('button', { name: /other names and aliases/i })
     fireEvent.focus(trigger)
-    expect(screen.getByRole('tooltip')).toBeInTheDocument()
+    expect(screen.getByText('Aliases')).toBeInTheDocument()
     expect(screen.getByText('cal')).toBeInTheDocument()
     await user.keyboard('{Escape}')
-    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    expect(screen.queryByText('Aliases')).not.toBeInTheDocument()
   })
 
   it('renders active Instagram, Spotify, Apple Music, and YouTube destinations', async () => {
@@ -123,24 +123,49 @@ describe('Ash social hub', () => {
   })
 
   it('has no coming-soon links in profile (aligns with live count)', async () => {
-    // If you add `coming_soon` entries, update this and the "5 live links" test.
+    // If you add `coming_soon` entries, update this and the live-link count test.
     expect(profile.links.filter((l) => l.status === 'coming_soon')).toHaveLength(0)
     render(<App />)
     await flushAsyncUi()
-    expect(screen.getByText('5 live links')).toBeInTheDocument()
+    expect(screen.getByText('6 live links')).toBeInTheDocument()
     expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument()
   })
 
   it('shows a compact links summary', async () => {
     render(<App />)
     await flushAsyncUi()
-    expect(screen.getByText('5 live links')).toBeInTheDocument()
+    expect(screen.getByText('6 live links')).toBeInTheDocument()
   })
 
-  it('does not render TikTok or X cards', async () => {
+  it('renders TikTok in the main links grid', async () => {
     render(<App />)
     await flushAsyncUi()
-    expect(screen.queryByText(/tiktok/i)).not.toBeInTheDocument()
+    const tiktok = screen.getByRole('link', { name: /open tiktok/i })
+    expect(tiktok).toHaveAttribute('href', 'https://www.tiktok.com/@itsash583')
+    expect(tiktok).toHaveAttribute('target', '_blank')
+    expect(tiktok).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('renders the Cursor referral in the More section when expanded', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await flushAsyncUi()
+    expect(screen.getByRole('heading', { level: 2, name: 'More' })).toBeInTheDocument()
+    const trigger = screen.getByRole('button', { name: 'More' })
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByRole('link', { name: /open cursor/i })).not.toBeInTheDocument()
+
+    await user.click(trigger)
+    expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    const cursor = screen.getByRole('link', { name: /open cursor/i })
+    expect(cursor).toHaveAttribute('href', 'https://cursor.com/referral?code=HFH1ZWWFBDIC')
+    expect(cursor).toHaveAttribute('target', '_blank')
+    expect(cursor).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('does not render an X card', async () => {
+    render(<App />)
+    await flushAsyncUi()
     expect(screen.queryByText(/^x$/i)).not.toBeInTheDocument()
   })
 
@@ -149,5 +174,71 @@ describe('Ash social hub', () => {
     await flushAsyncUi()
     const contact = screen.getByRole('link', { name: /email me/i })
     expect(contact).toHaveAttribute('href', 'mailto:s956t2hpg9@privaterelay.appleid.com')
+  })
+
+  it('renders the developer projects section', async () => {
+    render(<App />)
+    await flushAsyncUi()
+    expect(screen.getByRole('heading', { level: 2, name: 'Development Projects' })).toBeInTheDocument()
+    expect(screen.getByRole('list', { name: 'Programming languages' })).toHaveTextContent('TypeScript')
+    expect(screen.getByRole('button', { name: /view details for graft/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /view details for ash links/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /view details for auto trade mod/i })).toBeInTheDocument()
+  })
+
+  it('expands the tools list in the developer section', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await flushAsyncUi()
+
+    const trigger = screen.getByRole('button', { name: 'Tools' })
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('Codex Pro Lite')).not.toBeInTheDocument()
+
+    await user.click(trigger)
+    expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText('Codex Pro Lite')).toBeInTheDocument()
+    expect(screen.getByText('$100/mo')).toBeInTheDocument()
+    expect(screen.getByText('Cursor Pro')).toBeInTheDocument()
+    expect(screen.getByText('$20/mo')).toBeInTheDocument()
+    expect(screen.getByText('Claude Code')).toBeInTheDocument()
+    expect(screen.getByText('Usage based')).toBeInTheDocument()
+  })
+
+  it('expands Claude Code usage pricing detail when clicked', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await flushAsyncUi()
+
+    await user.click(screen.getByRole('button', { name: 'Tools' }))
+    const priceButton = screen.getByRole('button', { name: 'Usage based' })
+    expect(priceButton).toHaveAttribute('aria-expanded', 'false')
+
+    await user.click(priceButton)
+    expect(priceButton).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText(/only use the free version of Claude Code/i)).toBeInTheDocument()
+  })
+
+  it('opens a project detail modal with GitHub link', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await flushAsyncUi()
+
+    await user.click(screen.getByRole('button', { name: /view details for graft/i }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Graft' })).toBeInTheDocument()
+
+    const github = screen.getByRole('link', { name: /view on github/i })
+    expect(github).toHaveAttribute('href', 'https://github.com/itsasheruwu/graft')
+    expect(github).toHaveAttribute('target', '_blank')
+    expect(github).toHaveAttribute('rel', 'noopener noreferrer')
+
+    await user.click(screen.getByRole('button', { name: /^close$/i }))
+    await act(async () => {
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 200)
+      })
+    })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

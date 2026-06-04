@@ -5,6 +5,7 @@ import {
   FaInstagram,
   FaSpotify,
   FaThumbtack,
+  FaTiktok,
   FaYoutube,
 } from 'react-icons/fa6'
 import type { IconType } from 'react-icons'
@@ -31,6 +32,7 @@ const iconMap: Record<SocialLink['id'], IconType> = {
   discord: FaDiscord,
   apple_music: FaApple,
   youtube: FaYoutube,
+  tiktok: FaTiktok,
 }
 
 const chooserPlatforms: Partial<Record<SocialLink['id'], string>> = {

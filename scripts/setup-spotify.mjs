@@ -94,7 +94,7 @@ async function exchangeCode({ clientId, clientSecret, redirectUri, code }) {
     throw new Error(`Token exchange failed: ${msg}`)
   }
   if (!data.refresh_token) {
-    throw new Error('No refresh_token in response — try a new code (codes are single-use).')
+    throw new Error('No refresh_token in response. Try a new code (codes are single-use).')
   }
   return data.refresh_token
 }
@@ -155,7 +155,7 @@ async function main() {
     const pasted = await ask('Paste the `code` query value (or full URL)', { default: '' })
     let code = pasted.trim()
     if (!code) {
-      process.stdout.write('No code — exiting.\n')
+      process.stdout.write('No code. Exiting.\n')
       process.exitCode = 1
       return
     }
@@ -186,7 +186,7 @@ async function main() {
       SPOTIFY_CLIENT_SECRET: clientSecret,
       SPOTIFY_REFRESH_TOKEN: refreshToken,
     },
-    '# Server-only — add these in Vercel (or your host) for api/spotify. Do not commit or expose in the browser.',
+    '# Server-only. Add these in Vercel (or your host) for api/spotify. Do not commit or expose in the browser.',
   )
 
   process.stdout.write(`\nWrote ${SERVER_ENV_FILE}\n`)

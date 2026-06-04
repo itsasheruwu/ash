@@ -1,13 +1,20 @@
 export type SocialLinkStatus = 'active' | 'coming_soon'
 
 export type SocialLink = {
-  id: 'instagram' | 'spotify' | 'discord' | 'apple_music' | 'youtube'
+  id: 'instagram' | 'spotify' | 'discord' | 'apple_music' | 'youtube' | 'tiktok'
   label: string
   handle?: string
   url?: string
   artistUrl?: string
   status: SocialLinkStatus
   primary?: boolean
+}
+
+export type ExtraItem = {
+  id: 'cursor' | 'about'
+  label: string
+  description?: string
+  url?: string
 }
 
 export type ProfileConfig = {
@@ -25,6 +32,7 @@ export type ProfileConfig = {
   quote?: string
   email: string
   links: SocialLink[]
+  extras: ExtraItem[]
 }
 
 export function instagramUsernameFromProfile(p: ProfileConfig): string | null {
@@ -94,6 +102,21 @@ export const profile: ProfileConfig = {
       url: 'https://www.youtube.com/@itsasheruwu',
       artistUrl: 'https://www.youtube.com/@itsasheruwu',
       status: 'active',
+    },
+    {
+      id: 'tiktok',
+      label: 'TikTok',
+      handle: '@itsash583',
+      url: 'https://www.tiktok.com/@itsash583',
+      status: 'active',
+    },
+  ],
+  extras: [
+    {
+      id: 'cursor',
+      label: 'Cursor',
+      description: 'Referral: try Cursor with this link',
+      url: 'https://cursor.com/referral?code=HFH1ZWWFBDIC',
     },
   ],
 }
