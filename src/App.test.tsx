@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from './App'
@@ -63,63 +63,45 @@ describe('Ash social hub', () => {
     render(<App />)
     await flushAsyncUi()
 
-    const instagram = screen.getByRole('link', { name: /open instagram/i })
-    expect(instagram).toHaveAttribute('href', 'https://www.instagram.com/itsasheruwu/')
-    expect(instagram).toHaveAttribute('target', '_blank')
-    expect(instagram).toHaveAttribute('rel', 'noopener noreferrer')
+    const instagram = screen.getByRole('button', { name: /open instagram/i })
+    expect(screen.getByText('@itsdavidig & @calissick')).toBeInTheDocument()
+    await user.click(instagram)
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    const mainIg = screen.getByRole('link', { name: /^@itsdavidig$/i })
+    const altIg = screen.getByRole('link', { name: /^@calissick$/i })
+    expect(mainIg).toHaveAttribute('href', 'https://www.instagram.com/itsdavidig/')
+    expect(altIg).toHaveAttribute('href', 'https://www.instagram.com/calissick/')
+    expect(mainIg).toHaveAttribute('target', '_blank')
+    expect(altIg).toHaveAttribute('target', '_blank')
+    expect(mainIg).toHaveAttribute('rel', 'noopener noreferrer')
+    expect(altIg).toHaveAttribute('rel', 'noopener noreferrer')
+
+    const closeInstagramDialog = screen.getByRole('button', { name: /close/i })
+    await user.click(closeInstagramDialog)
 
     const discord = screen.getByRole('link', { name: /open discord/i })
     expect(discord).toHaveAttribute('href', 'https://discord.com/users/1438433855445930059')
     expect(discord).toHaveAttribute('target', '_blank')
     expect(discord).toHaveAttribute('rel', 'noopener noreferrer')
 
-    const spotifyTrigger = screen.getByRole('button', { name: /open spotify/i })
-    await user.click(spotifyTrigger)
-
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-    const personal = screen.getByRole('link', { name: /^personal$/i })
-    const artist = screen.getByRole('link', { name: /^artist$/i })
-    expect(personal).toHaveAttribute(
+    const spotify = screen.getByRole('link', { name: /open spotify/i })
+    expect(spotify).toHaveAttribute(
       'href',
       'https://open.spotify.com/user/316plljirvcpala37jqitv2fhese?si=512c3823d07749a2'
     )
-    expect(artist).toHaveAttribute(
-      'href',
-      'https://open.spotify.com/user/316plljirvcpala37jqitv2fhese?si=512c3823d07749a2'
-    )
-    expect(personal).toHaveAttribute('target', '_blank')
-    expect(artist).toHaveAttribute('target', '_blank')
+    expect(spotify).toHaveAttribute('target', '_blank')
+    expect(spotify).toHaveAttribute('rel', 'noopener noreferrer')
 
-    const closeButton = screen.getByRole('button', { name: /close/i })
-    await user.click(closeButton)
+    const appleMusic = screen.getByRole('link', { name: /open apple music/i })
+    expect(appleMusic).toHaveAttribute('href', 'https://music.apple.com/profile/itsasheruwu')
+    expect(appleMusic).toHaveAttribute('target', '_blank')
+    expect(appleMusic).toHaveAttribute('rel', 'noopener noreferrer')
 
-    const appleMusicTrigger = screen.getByRole('button', { name: /open apple music/i })
-    await user.click(appleMusicTrigger)
-
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-    const applePersonal = screen.getByRole('link', { name: /^personal$/i })
-    const appleArtist = screen.getByRole('link', { name: /^artist$/i })
-    expect(applePersonal).toHaveAttribute('href', 'https://music.apple.com/profile/itsasheruwu')
-    expect(appleArtist).toHaveAttribute('href', 'https://music.apple.com/profile/itsasheruwu')
-    expect(applePersonal).toHaveAttribute('target', '_blank')
-    expect(appleArtist).toHaveAttribute('target', '_blank')
-
-    const closeAppleDialogButton = screen.getByRole('button', { name: /close/i })
-    await user.click(closeAppleDialogButton)
-
-    const youtubeTrigger = screen.getByRole('button', { name: /open youtube/i })
-    await user.click(youtubeTrigger)
-
-    expect(screen.getByRole('dialog')).toBeInTheDocument()
-    const youtubePersonal = screen.getByRole('link', { name: /^personal$/i })
-    const youtubeArtist = screen.getByRole('link', { name: /^artist$/i })
-    expect(youtubePersonal).toHaveAttribute('href', 'https://www.youtube.com/@itsasheruwu')
-    expect(youtubeArtist).toHaveAttribute(
-      'href',
-      'https://www.youtube.com/@itsasheruwu'
-    )
-    expect(youtubePersonal).toHaveAttribute('target', '_blank')
-    expect(youtubeArtist).toHaveAttribute('target', '_blank')
+    const youtube = screen.getByRole('link', { name: /open youtube/i })
+    expect(youtube).toHaveAttribute('href', 'https://www.youtube.com/@itsasheruwu')
+    expect(youtube).toHaveAttribute('target', '_blank')
+    expect(youtube).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
   it('has no coming-soon links in profile (aligns with live count)', async () => {
@@ -137,13 +119,23 @@ describe('Ash social hub', () => {
     expect(screen.getByText('6 live links')).toBeInTheDocument()
   })
 
-  it('renders TikTok in the main links grid', async () => {
+  it('renders TikTok in the main links grid with both accounts', async () => {
+    const user = userEvent.setup()
     render(<App />)
     await flushAsyncUi()
-    const tiktok = screen.getByRole('link', { name: /open tiktok/i })
-    expect(tiktok).toHaveAttribute('href', 'https://www.tiktok.com/@itsash583')
-    expect(tiktok).toHaveAttribute('target', '_blank')
-    expect(tiktok).toHaveAttribute('rel', 'noopener noreferrer')
+    const tiktok = screen.getByRole('button', { name: /open tiktok/i })
+    expect(screen.getByText('@itsash583 & @caldidsumshi')).toBeInTheDocument()
+    await user.click(tiktok)
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    const ashTiktok = screen.getByRole('link', { name: /^@itsash583$/i })
+    const calTiktok = screen.getByRole('link', { name: /^@caldidsumshi$/i })
+    expect(ashTiktok).toHaveAttribute('href', 'https://www.tiktok.com/@itsash583')
+    expect(calTiktok).toHaveAttribute('href', 'https://www.tiktok.com/@caldidsumshi')
+    expect(ashTiktok).toHaveAttribute('target', '_blank')
+    expect(calTiktok).toHaveAttribute('target', '_blank')
+    expect(ashTiktok).toHaveAttribute('rel', 'noopener noreferrer')
+    expect(calTiktok).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
   it('renders the Cursor referral in the More section when expanded', async () => {
@@ -161,6 +153,11 @@ describe('Ash social hub', () => {
     expect(cursor).toHaveAttribute('href', 'https://cursor.com/referral?code=HFH1ZWWFBDIC')
     expect(cursor).toHaveAttribute('target', '_blank')
     expect(cursor).toHaveAttribute('rel', 'noopener noreferrer')
+
+    const opencode = screen.getByRole('link', { name: /open opencode go/i })
+    expect(opencode).toHaveAttribute('href', 'https://opencode.ai/go?ref=1268ZV3QHE')
+    expect(opencode).toHaveAttribute('target', '_blank')
+    expect(opencode).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
   it('does not render an X card', async () => {
@@ -184,6 +181,9 @@ describe('Ash social hub', () => {
     expect(screen.getByRole('button', { name: /view details for graft/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /view details for ash links/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /view details for auto trade mod/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /view details for video frame post picker/i })
+    ).toBeInTheDocument()
   })
 
   it('expands the tools list in the developer section', async () => {
@@ -197,26 +197,36 @@ describe('Ash social hub', () => {
 
     await user.click(trigger)
     expect(trigger).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByText('Codex Pro Lite')).toBeInTheDocument()
-    expect(screen.getByText('$100/mo')).toBeInTheDocument()
-    expect(screen.getByText('Cursor Pro')).toBeInTheDocument()
-    expect(screen.getByText('$20/mo')).toBeInTheDocument()
-    expect(screen.getByText('Claude Code')).toBeInTheDocument()
-    expect(screen.getByText('Usage based')).toBeInTheDocument()
+    const projectsSection = screen.getByRole('heading', { level: 2, name: 'Development Projects' }).closest('section')!
+    const tools = within(projectsSection)
+    expect(tools.getByText('Codex Pro Lite')).toBeInTheDocument()
+    expect(tools.getByText('$100/mo')).toBeInTheDocument()
+    expect(tools.getByText('Cursor Pro')).toBeInTheDocument()
+    expect(tools.getByText('$20/mo')).toBeInTheDocument()
+    expect(tools.getByText('OpenCode Go')).toBeInTheDocument()
+    expect(tools.getByText('$10/mo')).toBeInTheDocument()
+    expect(tools.getByText('Claude Code')).toBeInTheDocument()
+    expect(tools.getByText('CLIProxyAPI')).toBeInTheDocument()
   })
 
-  it('expands Claude Code usage pricing detail when clicked', async () => {
+  it('expands Claude Code CLIProxyAPI detail with GitHub link when clicked', async () => {
     const user = userEvent.setup()
     render(<App />)
     await flushAsyncUi()
 
     await user.click(screen.getByRole('button', { name: 'Tools' }))
-    const priceButton = screen.getByRole('button', { name: 'Usage based' })
+    const priceButton = screen.getByRole('button', { name: 'CLIProxyAPI' })
     expect(priceButton).toHaveAttribute('aria-expanded', 'false')
 
     await user.click(priceButton)
     expect(priceButton).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByText(/only use the free version of Claude Code/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/run free Claude Code and route my other AI subscriptions through/i)
+    ).toBeInTheDocument()
+    const cliproxyLink = screen.getByRole('link', { name: 'CLIProxyAPI' })
+    expect(cliproxyLink).toHaveAttribute('href', 'https://github.com/router-for-me/CLIProxyAPI')
+    expect(cliproxyLink).toHaveAttribute('target', '_blank')
+    expect(cliproxyLink).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
   it('opens a project detail modal with GitHub link', async () => {

@@ -11,7 +11,7 @@ export type SocialLink = {
 }
 
 export type ExtraItem = {
-  id: 'cursor' | 'about'
+  id: 'cursor' | 'opencode' | 'about'
   label: string
   description?: string
   url?: string
@@ -55,7 +55,7 @@ export function instagramUsernameFromProfile(p: ProfileConfig): string | null {
 export const profile: ProfileConfig = {
   displayName: 'Ash',
   aliases: ['ash', 'cal', 'itsasheruwu'],
-  instagramUsername: 'itsasheruwu',
+  instagramUsername: 'itsdavidig',
   avatarSrc: 'instagram-avatar.jpg',
   // Optional: only if `VITE_INSTAGRAM_AVATAR_URL` is unset and your avatar API is not the same host as `VITE_SPOTIFY_STATUS_URL` (Hero derives `/api/instagram-avatar` from the Spotify URL when possible).
   // instagramAvatarApiBase: 'https://<your-project>.vercel.app/api/instagram-avatar',
@@ -66,18 +66,16 @@ export const profile: ProfileConfig = {
     {
       id: 'instagram',
       label: 'Instagram',
-      handle: '@itsasheruwu',
-      url: 'https://www.instagram.com/itsasheruwu/',
+      handle: '@itsdavidig & @calissick',
+      url: 'https://www.instagram.com/itsdavidig/',
+      artistUrl: 'https://www.instagram.com/calissick/',
       status: 'active',
-      primary: true,
     },
     {
       id: 'spotify',
       label: 'Spotify',
-      handle: "@ash",
+      handle: '@ash',
       url: 'https://open.spotify.com/user/316plljirvcpala37jqitv2fhese?si=512c3823d07749a2',
-      artistUrl:
-        'https://open.spotify.com/user/316plljirvcpala37jqitv2fhese?si=512c3823d07749a2',
       status: 'active',
     },
     {
@@ -90,24 +88,23 @@ export const profile: ProfileConfig = {
     {
       id: 'apple_music',
       label: 'Apple Music',
-      handle: "@itsasheruwu",
+      handle: '@itsasheruwu',
       url: 'https://music.apple.com/profile/itsasheruwu',
-      artistUrl: 'https://music.apple.com/profile/itsasheruwu',
       status: 'active',
     },
     {
       id: 'youtube',
       label: 'YouTube',
-      handle: "@itsasheruwu",
+      handle: '@itsasheruwu',
       url: 'https://www.youtube.com/@itsasheruwu',
-      artistUrl: 'https://www.youtube.com/@itsasheruwu',
       status: 'active',
     },
     {
       id: 'tiktok',
       label: 'TikTok',
-      handle: '@itsash583',
+      handle: '@itsash583 & @caldidsumshi',
       url: 'https://www.tiktok.com/@itsash583',
+      artistUrl: 'https://www.tiktok.com/@caldidsumshi',
       status: 'active',
     },
   ],
@@ -117,6 +114,12 @@ export const profile: ProfileConfig = {
       label: 'Cursor',
       description: 'Referral: try Cursor with this link',
       url: 'https://cursor.com/referral?code=HFH1ZWWFBDIC',
+    },
+    {
+      id: 'opencode',
+      label: 'OpenCode Go',
+      description: 'Referral: try OpenCode Go with this link',
+      url: 'https://opencode.ai/go?ref=1268ZV3QHE',
     },
   ],
 }

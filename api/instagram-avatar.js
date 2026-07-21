@@ -12,6 +12,12 @@
 
 const IG_USER_RE = /^[a-zA-Z0-9._]{1,30}$/
 
+const isDev = process.env.NODE_ENV !== 'production'
+
+function setAvatarCache(res, productionValue) {
+  res.setHeader('Cache-Control', isDev ? 'no-store' : productionValue)
+}
+
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
 
@@ -114,7 +120,7 @@ export default async function handler(req, res) {
     q.get('format') === 'image' || q.get('image') === '1'
 
   if (!username || !IG_USER_RE.test(username)) {
-    res.setHeader('Cache-Control', 'public, s-maxage=60')
+    setAvatarCache(res, 'public, s-maxage=60')
     res.status(200).json({ ok: false, error: 'invalid_username' })
     return
   }
@@ -126,7 +132,7 @@ export default async function handler(req, res) {
         res.status(404).end()
         return
       }
-      res.setHeader('Cache-Control', 'public, s-maxage=300')
+      setAvatarCache(res, 'public, s-maxage=300')
       res.status(200).json({ ok: false, error: 'not_found' })
       return
     }
@@ -141,15 +147,12 @@ export default async function handler(req, res) {
       const buf = Buffer.from(await imgRes.arrayBuffer())
       const ctype = imgRes.headers.get('content-type') || 'image/jpeg'
       res.setHeader('Content-Type', ctype)
-      res.setHeader(
-        'Cache-Control',
-        'public, s-maxage=86400, stale-while-revalidate=604800',
-      )
+      setAvatarCache(res, 'public, s-maxage=86400, stale-while-revalidate=604800')
       res.status(200).end(buf)
       return
     }
 
-    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400')
+    setAvatarCache(res, 'public, s-maxage=3600, stale-while-revalidate=86400')
     res.status(200).json({ ok: true, username, profilePicUrl })
   } catch (e) {
     console.error('instagram-avatar error', e)
@@ -157,7 +160,7 @@ export default async function handler(req, res) {
       res.status(500).end()
       return
     }
-    res.setHeader('Cache-Control', 'public, s-maxage=60')
+    setAvatarCache(res, 'public, s-maxage=60')
     res.status(200).json({ ok: false, error: 'upstream_error' })
   }
 }

@@ -2,6 +2,7 @@ import { useId, useState } from 'react'
 import { FaChevronDown, FaTerminal } from 'react-icons/fa6'
 import type { IconType } from 'react-icons'
 import { cn } from '@/lib/utils'
+import { OpenCodeIcon } from './icons/OpenCodeIcon'
 import type { ExtraItem } from '../data/profile'
 
 type ExtrasSectionProps = {
@@ -11,6 +12,7 @@ type ExtrasSectionProps = {
 
 const iconMap: Partial<Record<ExtraItem['id'], IconType>> = {
   cursor: FaTerminal,
+  opencode: OpenCodeIcon as IconType,
 }
 
 function ExtrasSection({ items, heading = 'More' }: ExtrasSectionProps) {

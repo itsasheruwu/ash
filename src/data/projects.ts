@@ -39,4 +39,14 @@ export const projects: Project[] = [
     iconSrc: `${import.meta.env.BASE_URL}projects/autotrade.png`,
     tags: ['Minecraft', 'Fabric', 'Java'],
   },
+  {
+    id: 'video-frame-post-picker',
+    name: 'Video Frame Post Picker',
+    tagline: 'Pick Instagram-ready stills from video.',
+    description:
+      'Codex skill that extracts every frame from a video, helps you shortlist the best stills, crops a final Instagram feed image, and can polish lighting with image generation.',
+    githubUrl: 'https://github.com/itsasheruwu/video-frame-post-picker',
+    iconSrc: `${import.meta.env.BASE_URL}projects/video-frame-post-picker.png`,
+    tags: ['Codex skill', 'ffmpeg', 'Instagram'],
+  },
 ]

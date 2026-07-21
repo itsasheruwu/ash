@@ -6,11 +6,13 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
 import { localApiMiddleware } from './vite/local-api-middleware'
+import { devReloadOnData } from './vite/dev-reload-on-data'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const repositoryName = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 'ash'
 const base = process.env.NODE_ENV === 'production' ? `/${repositoryName}/` : '/'
+const devPort = 5173
 
 export default defineConfig({
   resolve: {
@@ -21,6 +23,7 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     react(),
+    devReloadOnData(),
     {
       name: 'local-api',
       configureServer(server) {
@@ -28,6 +31,18 @@ export default defineConfig({
       },
     },
   ],
+  server: {
+    port: devPort,
+    strictPort: true,
+    hmr: {
+      host: 'localhost',
+      port: devPort,
+      clientPort: devPort,
+    },
+    headers: {
+      'Cache-Control': 'no-store',
+    },
+  },
   base,
   test: {
     environment: 'jsdom',

@@ -36,9 +36,19 @@ const iconMap: Record<SocialLink['id'], IconType> = {
 }
 
 const chooserPlatforms: Partial<Record<SocialLink['id'], string>> = {
-  spotify: 'Spotify',
-  apple_music: 'Apple Music',
-  youtube: 'YouTube',
+  instagram: 'Instagram',
+  tiktok: 'TikTok',
+}
+
+function chooserOptionLabels(link: SocialLink): { primary: string; secondary: string } {
+  const parts = (link.handle ?? '')
+    .split(/\s*&\s*/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+  if (parts.length >= 2) {
+    return { primary: parts[0], secondary: parts[1] }
+  }
+  return { primary: 'Profile', secondary: 'Other' }
 }
 
 function SocialGrid({ links }: SocialGridProps) {
@@ -85,6 +95,7 @@ function SocialGrid({ links }: SocialGridProps) {
         )
 
         if (hasProfileChooser && chooserPlatform && link.url && link.artistUrl) {
+          const optionLabels = chooserOptionLabels(link)
           return (
             <Dialog key={link.id}>
               <DialogTrigger
@@ -95,7 +106,7 @@ function SocialGrid({ links }: SocialGridProps) {
               >
                 {cardContent}
                 <span className="visually-hidden">
-                  Choose personal or artist profile. Opens {chooserPlatform} in a new tab.
+                  Choose which profile to open. Opens {chooserPlatform} in a new tab.
                 </span>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
@@ -113,7 +124,7 @@ function SocialGrid({ links }: SocialGridProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Personal
+                    {optionLabels.primary}
                   </a>
                   <a
                     className={cn(
@@ -124,7 +135,7 @@ function SocialGrid({ links }: SocialGridProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Artist
+                    {optionLabels.secondary}
                   </a>
                 </div>
               </DialogContent>

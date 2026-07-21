@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { modalCloseMs } from '@/lib/transitions'
 import { CodexIcon } from './icons/CodexIcon'
 import { CursorIcon } from './icons/CursorIcon'
+import { OpenCodeIcon } from './icons/OpenCodeIcon'
 import { AvatarGroup } from './AvatarGroup'
 import { codingLanguages, devTools, type DevTool } from '../data/developer'
 import { projects, type Project } from '../data/projects'
@@ -14,7 +15,34 @@ import ProjectDetailModal from './ProjectDetailModal'
 const toolIconMap: Record<DevTool['id'], IconType> = {
   codex: CodexIcon as IconType,
   cursor: CursorIcon as IconType,
+  opencode: OpenCodeIcon as IconType,
   claude: SiClaude,
+}
+
+function renderPriceDetail(tool: DevTool) {
+  const detail = tool.priceDetail
+  if (!detail) return null
+
+  const link = tool.priceDetailLink
+  if (!link) return detail
+
+  const index = detail.indexOf(link.label)
+  if (index === -1) return detail
+
+  return (
+    <>
+      {detail.slice(0, index)}
+      <a
+        className="projects-section__tool-detail-link"
+        href={link.href}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {link.label}
+      </a>
+      {detail.slice(index + link.label.length)}
+    </>
+  )
 }
 
 function ProjectsSection() {
@@ -153,7 +181,7 @@ function ProjectsSection() {
                             )}
                           </div>
                           {tool.priceDetail && priceExpanded ? (
-                            <p className="projects-section__tool-detail">{tool.priceDetail}</p>
+                            <p className="projects-section__tool-detail">{renderPriceDetail(tool)}</p>
                           ) : null}
                         </li>
                       )

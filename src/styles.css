@@ -2010,6 +2010,16 @@ a.extras-row:hover .extras-row__icon {
   text-align: left;
 }
 
+.projects-section__tool-detail-link {
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.projects-section__tool-detail-link:hover {
+  color: var(--brand-strong);
+}
+
 .projects-grid {
   --avatar-lift: -8px;
   --avatar-scale: 1.12;
