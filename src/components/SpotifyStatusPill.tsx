@@ -2,6 +2,10 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Reac
 import { FaChevronDown, FaSpotify } from 'react-icons/fa6'
 
 import { extractVibrantColorsFromImageUrl, padStopsToFourColors } from '@/lib/extractVibrantColorsFromImageUrl'
+import {
+  reconcileSpotifyStatus,
+  type SpotifyStatusPayload as StatusPayload,
+} from '@/lib/reconcileSpotifyStatus'
 import { useSpotifyPillDock } from '@/lib/useSpotifyPillDock'
 import { cn } from '@/lib/utils'
 
@@ -9,31 +13,6 @@ const POLL_MS = 5_000
 const TRANSITION_POLL_MS = 1_500
 const TRANSITION_WINDOW_MS = 12_000
 const DEFAULT_SPOTIFY_STATUS_URL = 'https://ash-chi-nine.vercel.app/api/spotify'
-
-type Track = {
-  name: string
-  artist: string
-  url: string | null
-  album?: string | null
-  albumUrl?: string | null
-  image?: string | null
-  durationMs?: number | null
-  released?: string | null
-  trackNumber?: number | null
-  discNumber?: number | null
-  albumTotalTracks?: number | null
-  explicit?: boolean | null
-}
-
-type StatusPayload =
-  | {
-      ok: true
-      state: 'playing' | 'paused' | 'recent' | 'idle'
-      track: Track | null
-      progressMs?: number | null
-      fetchedAt?: number | null
-    }
-  | { ok: false; error?: string }
 
 function formatDuration(ms: number | null | undefined) {
   if (ms == null || ms <= 0) return null
@@ -83,6 +62,9 @@ type SpotifyStatusPillProps = {
 function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
   const endpoint = import.meta.env.VITE_SPOTIFY_STATUS_URL || DEFAULT_SPOTIFY_STATUS_URL
   const outerRef = useRef<HTMLDivElement>(null)
+  const fetchGenRef = useRef(0)
+  const dataRef = useRef<StatusPayload | null>(null)
+  const demoteSinceRef = useRef<number | null>(null)
 
   const [data, setData] = useState<StatusPayload | null>(null)
   const [loading, setLoading] = useState(Boolean(endpoint))
@@ -90,9 +72,24 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
   const [titleArtStops, setTitleArtStops] = useState<CSSProperties | null>(null)
   const [nowMs, setNowMs] = useState(() => Date.now())
 
+  dataRef.current = data
+
+  const applyStatus = useCallback((json: StatusPayload) => {
+    const reconciled = reconcileSpotifyStatus(
+      dataRef.current,
+      json,
+      Date.now(),
+      demoteSinceRef.current,
+    )
+    demoteSinceRef.current = reconciled.demoteSince
+    dataRef.current = reconciled.data
+    setData(reconciled.data)
+  }, [])
+
   const fetchStatus = useCallback(
     async (signal: AbortSignal) => {
       if (!endpoint) return
+      const gen = ++fetchGenRef.current
 
       try {
         const res = await fetch(withCacheBust(endpoint), {
@@ -100,29 +97,32 @@ function SpotifyStatusPill({ className }: SpotifyStatusPillProps) {
           credentials: 'omit',
           signal,
         })
+        if (gen !== fetchGenRef.current) return
         if (!res.ok) {
-          setData({ ok: false, error: `http_${res.status}` })
+          applyStatus({ ok: false, error: `http_${res.status}` })
           return
         }
         const ct = res.headers.get('content-type')
         if (ct && !ct.includes('application/json')) {
-          setData({ ok: false, error: 'bad_content_type' })
+          applyStatus({ ok: false, error: 'bad_content_type' })
           return
         }
         const json = (await res.json()) as StatusPayload
-        setData(json)
+        if (gen !== fetchGenRef.current) return
+        applyStatus(json)
       } catch (e) {
         if (e && typeof e === 'object' && 'name' in e && (e as { name: string }).name === 'AbortError') {
           return
         }
-        setData({ ok: false, error: 'network' })
+        if (gen !== fetchGenRef.current) return
+        applyStatus({ ok: false, error: 'network' })
       } finally {
-        if (!signal.aborted) {
+        if (!signal.aborted && gen === fetchGenRef.current) {
           setLoading(false)
         }
       }
     },
-    [endpoint],
+    [applyStatus, endpoint],
   )
 
   useEffect(() => {

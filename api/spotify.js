@@ -57,6 +57,42 @@ function cacheControl(res) {
   res.setHeader('Cache-Control', 'no-store, max-age=0')
 }
 
+function livePayload(body) {
+  const track = formatTrack(body?.item)
+  if (!track) return null
+  return {
+    ok: true,
+    state: body.is_playing ? 'playing' : 'paused',
+    track,
+    progressMs: typeof body.progress_ms === 'number' ? body.progress_ms : null,
+    fetchedAt: Date.now(),
+  }
+}
+
+/** Prefer currently-playing; on empty/204, try /me/player before recently-played. */
+async function readLivePlayback(authHeaders) {
+  const currentRes = await fetch(
+    'https://api.spotify.com/v1/me/player/currently-playing',
+    { headers: authHeaders },
+  )
+
+  if (currentRes.status === 200) {
+    const fromCurrent = livePayload(await currentRes.json())
+    if (fromCurrent) return fromCurrent
+  }
+
+  if (currentRes.status === 200 || currentRes.status === 204) {
+    const playerRes = await fetch('https://api.spotify.com/v1/me/player', {
+      headers: authHeaders,
+    })
+    if (playerRes.status === 200) {
+      return livePayload(await playerRes.json())
+    }
+  }
+
+  return null
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS')
@@ -105,31 +141,19 @@ export default async function handler(req, res) {
     const tokenPayload = await tokenRes.json()
     const accessToken = tokenPayload.access_token
 
-    const currentRes = await fetch(
-      'https://api.spotify.com/v1/me/player/currently-playing',
-      { headers: { Authorization: `Bearer ${accessToken}` } },
-    )
+    const auth = { Authorization: `Bearer ${accessToken}` }
 
-    if (currentRes.status === 200) {
-      const body = await currentRes.json()
-      const item = body.item
-      const track = formatTrack(item)
-      if (track) {
-        res.status(200).json({
-          ok: true,
-          state: body.is_playing ? 'playing' : 'paused',
-          track,
-          progressMs:
-            typeof body.progress_ms === 'number' ? body.progress_ms : null,
-          fetchedAt: Date.now(),
-        })
-        return
-      }
+    // currently-playing often 204s briefly between tracks / mid-playback; try
+    // the fuller /me/player payload before falling back to recently-played.
+    const live = await readLivePlayback(auth)
+    if (live) {
+      res.status(200).json(live)
+      return
     }
 
     const recentRes = await fetch(
       'https://api.spotify.com/v1/me/player/recently-played?limit=1',
-      { headers: { Authorization: `Bearer ${accessToken}` } },
+      { headers: auth },
     )
 
     if (!recentRes.ok) {
