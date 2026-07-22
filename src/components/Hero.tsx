@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { FaCircleExclamation } from 'react-icons/fa6'
+import { FaCircleInfo } from 'react-icons/fa6'
 import {
   getInstagramApiBase,
   getInstagramProxyImageUrl,
@@ -78,7 +78,7 @@ function HeroTitle({
               onFocus={reveal}
               onBlur={scheduleClose}
             >
-              <FaCircleExclamation aria-hidden="true" />
+              <FaCircleInfo aria-hidden="true" />
             </button>
             {open ? (
               <span
@@ -101,6 +101,47 @@ function HeroTitle({
   )
 }
 
+type LiveAvatarLayerProps = {
+  src: string
+  alt: string
+  /** When true, live image is decorative over an already-labeled static base. */
+  decorative: boolean
+  onError: () => void
+  onReady: () => void
+}
+
+/**
+ * Remount via `key` when `src` changes so `ready` resets without an effect.
+ * Soft-fades in once the live image loads successfully.
+ */
+function LiveAvatarLayer({
+  src,
+  alt,
+  decorative,
+  onError,
+  onReady,
+}: LiveAvatarLayerProps) {
+  const [ready, setReady] = useState(false)
+
+  return (
+    <img
+      className={`avatar__img avatar__img--live${ready ? ' is-ready' : ''}`}
+      src={src}
+      alt={decorative ? '' : alt}
+      aria-hidden={decorative ? true : undefined}
+      width={320}
+      height={320}
+      decoding="async"
+      referrerPolicy="no-referrer"
+      onLoad={() => {
+        setReady(true)
+        onReady()
+      }}
+      onError={onError}
+    />
+  )
+}
+
 type HeroAvatarImageProps = {
   displayName: string
   igProxyUrl: string | null
@@ -110,8 +151,9 @@ type HeroAvatarImageProps = {
 }
 
 /**
- * Try, in order: proxied `format=image` from our API, optional static override, then raw CDN
- * (may work when the image proxy 502s but JSON still returns `profilePicUrl`).
+ * Display static local avatar first (no initials flash), then soft-crossfade to a
+ * live proxy/CDN image when it loads. Fallback probe order remains proxy → CDN;
+ * static stays as the visible base if live sources fail.
  */
 function HeroAvatarImage({
   displayName,
@@ -119,18 +161,25 @@ function HeroAvatarImage({
   cdnFromJson,
   staticResolved,
 }: HeroAvatarImageProps) {
-  const chain = useMemo(
+  const liveChain = useMemo(
     () =>
-      [igProxyUrl, staticResolved, cdnFromJson]
+      [igProxyUrl, cdnFromJson]
         .filter((v): v is string => Boolean(v))
-        .filter((v, i, a) => a.indexOf(v) === i),
-    [igProxyUrl, staticResolved, cdnFromJson],
+        .filter((v, i, a) => a.indexOf(v) === i)
+        .filter((v) => v !== staticResolved),
+    [igProxyUrl, cdnFromJson, staticResolved],
   )
 
   const [errIdx, setErrIdx] = useState(0)
+  /** Only treat live as ready when it matches the current probe src (avoids stale ready across retries). */
+  const [readyLiveSrc, setReadyLiveSrc] = useState<string | null>(null)
 
-  const photoSrc = chain[errIdx] ?? null
-  const showPhoto = Boolean(photoSrc)
+  const liveSrc = liveChain[errIdx] ?? null
+  const liveReady = Boolean(liveSrc && readyLiveSrc === liveSrc)
+  const hasStatic = Boolean(staticResolved)
+  const photoAlt = `${displayName} profile photo`
+  const showPhoto = hasStatic || Boolean(liveSrc)
+  const showInitials = !hasStatic && !liveReady
 
   const initials =
     displayName.trim().length >= 3
@@ -140,22 +189,33 @@ function HeroAvatarImage({
   return (
     <div
       className={`avatar${showPhoto ? ' avatar--photo' : ''}`}
-      {...(showPhoto ? {} : { 'aria-hidden': true })}
+      {...(!showPhoto ? { 'aria-hidden': true } : {})}
     >
-      {showPhoto && photoSrc ? (
+      {hasStatic && staticResolved ? (
         <img
-          key={`${errIdx}-${photoSrc.slice(0, 64)}`}
-          src={photoSrc}
-          alt={`${displayName} profile photo`}
+          className="avatar__img avatar__img--base"
+          src={staticResolved}
+          alt={photoAlt}
           width={320}
           height={320}
           decoding="async"
-          referrerPolicy="no-referrer"
-          onError={() => setErrIdx((n) => n + 1)}
+          fetchPriority="high"
         />
-      ) : (
-        <span>{initials}</span>
-      )}
+      ) : null}
+      {liveSrc ? (
+        <LiveAvatarLayer
+          key={`${errIdx}-${liveSrc.slice(0, 64)}`}
+          src={liveSrc}
+          alt={photoAlt}
+          decorative={hasStatic}
+          onReady={() => setReadyLiveSrc(liveSrc)}
+          onError={() => {
+            setReadyLiveSrc(null)
+            setErrIdx((n) => n + 1)
+          }}
+        />
+      ) : null}
+      {showInitials ? <span className="avatar__initials">{initials}</span> : null}
     </div>
   )
 }
@@ -190,7 +250,7 @@ function HeroAvatarSection({
         }
       })
       .catch(() => {
-        // ignore; hero falls back to initials
+        // ignore; hero falls back to static / initials
       })
     return () => ac.abort()
   }, [apiBase, igName])

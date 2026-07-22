@@ -60,7 +60,7 @@ export const profile: ProfileConfig = {
   // Production falls back to https://ash-chi-nine.vercel.app/api/instagram-avatar when env is unset.
   // Override here only if the avatar API lives on a different host than that default / Spotify.
   tagline: 'Most active on Instagram.',
-  quote: 'If I only knew then, what i know now',
+  quote: 'If I only knew then, what I know now',
   email: 's956t2hpg9@privaterelay.appleid.com',
   links: [
     {

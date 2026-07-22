@@ -1102,15 +1102,43 @@ button:focus-visible {
 }
 
 .avatar--photo {
+  position: relative;
   padding: 0;
   background: var(--bg-elevated);
 }
 
-.avatar--photo img {
+.avatar__img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.avatar__img--base {
+  z-index: 0;
+}
+
+.avatar__img--live {
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.55s var(--ease-out);
+}
+
+.avatar__img--live.is-ready {
+  opacity: 1;
+}
+
+.avatar__initials {
+  position: relative;
+  z-index: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar__img--live {
+    transition: none;
+  }
 }
 
 .tagline {
@@ -1149,7 +1177,6 @@ button:focus-visible {
 .links-panel-heading {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-3);
 }
 
@@ -1160,16 +1187,6 @@ button:focus-visible {
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--text-soft);
-}
-
-.links-count-pill {
-  height: 1.45rem;
-  border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.035);
-  color: var(--muted-foreground);
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
 }
 
 .social-grid {

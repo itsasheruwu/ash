@@ -104,19 +104,13 @@ describe('Ash social hub', () => {
     expect(youtube).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
-  it('has no coming-soon links in profile (aligns with live count)', async () => {
-    // If you add `coming_soon` entries, update this and the live-link count test.
+  it('has no coming-soon links in profile', async () => {
     expect(profile.links.filter((l) => l.status === 'coming_soon')).toHaveLength(0)
     render(<App />)
     await flushAsyncUi()
-    expect(screen.getByText('6 live links')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 2, name: 'Links' })).toBeInTheDocument()
+    expect(screen.queryByText(/live link/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument()
-  })
-
-  it('shows a compact links summary', async () => {
-    render(<App />)
-    await flushAsyncUi()
-    expect(screen.getByText('6 live links')).toBeInTheDocument()
   })
 
   it('renders TikTok in the main links grid with both accounts', async () => {
