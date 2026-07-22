@@ -30,9 +30,16 @@ jobs:
       - name: Install
         run: npm ci
 
+      # Keep public/instagram-avatar.jpg current when Instagram allows the runner IP
+      # (Vercel datacenter scrapes often get login-wall placeholders instead).
+      - name: Refresh Instagram avatar fallback
+        continue-on-error: true
+        run: npm run instagram:refresh-avatar
+
       # Vite inlines import.meta.env.VITE_* at build time (same values as your local .env for prod APIs).
       # Add repo secrets: Settings → Secrets and variables → Actions → New repository secret
       #   VITE_SPOTIFY_STATUS_URL, VITE_INSTAGRAM_AVATAR_URL (absolute https URLs, not /api/… alone).
+      # If unset, the client falls back to https://ash-chi-nine.vercel.app for both APIs.
       - name: Verify and build
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}

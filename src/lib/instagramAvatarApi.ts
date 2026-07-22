@@ -1,5 +1,9 @@
 import { instagramUsernameFromProfile, type ProfileConfig } from '../data/profile'
 
+/** Same host as SpotifyStatusPill’s production fallback when env/secrets are unset. */
+const DEFAULT_INSTAGRAM_AVATAR_URL =
+  'https://ash-chi-nine.vercel.app/api/instagram-avatar'
+
 /**
  * Resolves the root URL for `GET /api/instagram-avatar` (no `?` query), using the same
  * precedence as the hero: env, profile, Spotify-host inference, then local dev only.
@@ -37,6 +41,12 @@ export function getInstagramApiBase(profile: ProfileConfig): string | null {
   if (import.meta.env.DEV && import.meta.env.MODE !== 'test' && typeof window !== 'undefined') {
     return `${window.location.origin}/api/instagram-avatar`
   }
+
+  // GitHub Pages production when Actions secrets were never set (mirrors Spotify default).
+  if (import.meta.env.PROD) {
+    return DEFAULT_INSTAGRAM_AVATAR_URL
+  }
+
   return null
 }
 
