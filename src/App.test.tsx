@@ -172,12 +172,26 @@ describe('Ash social hub', () => {
     await flushAsyncUi()
     expect(screen.getByRole('heading', { level: 2, name: 'Development Projects' })).toBeInTheDocument()
     expect(screen.getByRole('list', { name: 'Programming languages' })).toHaveTextContent('TypeScript')
+    expect(screen.getByRole('button', { name: /view details for veo/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /view details for crop photos/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /view details for graft/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /view details for ash links/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /view details for auto trade mod/i })).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: /view details for video frame post picker/i })
     ).toBeInTheDocument()
+    expect(
+      screen
+        .getAllByRole('button', { name: /view details for/i })
+        .map((button) => button.getAttribute('aria-label')),
+    ).toEqual([
+      'View details for Ash Links',
+      'View details for Auto Trade Mod',
+      'View details for Crop Photos',
+      'View details for Graft',
+      'View details for Veo',
+      'View details for Video Frame Post Picker',
+    ])
   })
 
   it('expands the tools list in the developer section', async () => {
