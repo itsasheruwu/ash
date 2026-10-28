@@ -118,14 +118,14 @@ describe('Ash social hub', () => {
     render(<App />)
     await flushAsyncUi()
     const tiktok = screen.getByRole('button', { name: /open tiktok/i })
-    expect(screen.getByText('@itsash583 & @caldidsumshi')).toBeInTheDocument()
+    expect(screen.getByText('@itsash583 & @calissick')).toBeInTheDocument()
     await user.click(tiktok)
 
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     const ashTiktok = screen.getByRole('link', { name: /^@itsash583$/i })
-    const calTiktok = screen.getByRole('link', { name: /^@caldidsumshi$/i })
+    const calTiktok = screen.getByRole('link', { name: /^@calissick$/i })
     expect(ashTiktok).toHaveAttribute('href', 'https://www.tiktok.com/@itsash583')
-    expect(calTiktok).toHaveAttribute('href', 'https://www.tiktok.com/@caldidsumshi')
+    expect(calTiktok).toHaveAttribute('href', 'https://www.tiktok.com/@calissick')
     expect(ashTiktok).toHaveAttribute('target', '_blank')
     expect(calTiktok).toHaveAttribute('target', '_blank')
     expect(ashTiktok).toHaveAttribute('rel', 'noopener noreferrer')
@@ -208,33 +208,20 @@ describe('Ash social hub', () => {
     const projectsSection = screen.getByRole('heading', { level: 2, name: 'Development Projects' }).closest('section')!
     const tools = within(projectsSection)
     expect(tools.getByText('Codex Pro Lite')).toBeInTheDocument()
-    expect(tools.getByText('$100/mo')).toBeInTheDocument()
-    expect(tools.getByText('Cursor Pro')).toBeInTheDocument()
-    expect(tools.getByText('$20/mo')).toBeInTheDocument()
-    expect(tools.getByText('OpenCode Go')).toBeInTheDocument()
-    expect(tools.getByText('$10/mo')).toBeInTheDocument()
-    expect(tools.getByText('Claude Code')).toBeInTheDocument()
-    expect(tools.getByText('CLIProxyAPI')).toBeInTheDocument()
-  })
-
-  it('expands Claude Code CLIProxyAPI detail with GitHub link when clicked', async () => {
-    const user = userEvent.setup()
-    render(<App />)
-    await flushAsyncUi()
-
-    await user.click(screen.getByRole('button', { name: 'Tools' }))
-    const priceButton = screen.getByRole('button', { name: 'CLIProxyAPI' })
-    expect(priceButton).toHaveAttribute('aria-expanded', 'false')
-
-    await user.click(priceButton)
-    expect(priceButton).toHaveAttribute('aria-expanded', 'true')
-    expect(
-      screen.getByText(/run free Claude Code and route my other AI subscriptions through/i)
-    ).toBeInTheDocument()
-    const cliproxyLink = screen.getByRole('link', { name: 'CLIProxyAPI' })
-    expect(cliproxyLink).toHaveAttribute('href', 'https://github.com/router-for-me/CLIProxyAPI')
-    expect(cliproxyLink).toHaveAttribute('target', '_blank')
-    expect(cliproxyLink).toHaveAttribute('rel', 'noopener noreferrer')
+    expect(tools.getByText('Wispr Flow')).toBeInTheDocument()
+    expect(tools.getByText('Free')).toBeInTheDocument()
+    expect(tools.getByText('X Subscription Premium')).toBeInTheDocument()
+    expect(tools.getByText('$30/mo')).toBeInTheDocument()
+    expect(tools.getByText('Claude Max 5x')).toBeInTheDocument()
+    expect(tools.getAllByText('$100/mo')).toHaveLength(2)
+    expect(tools.queryByText('Cursor Pro')).not.toBeInTheDocument()
+    expect(tools.queryByText('OpenCode Go')).not.toBeInTheDocument()
+    expect(tools.getAllByRole('listitem').slice(-4).map((item) => item.textContent)).toEqual([
+      'Claude Max 5x$100/mo',
+      'Codex Pro Lite$100/mo',
+      'Wispr FlowFree',
+      'X Subscription Premium$30/mo',
+    ])
   })
 
   it('opens a project detail modal with GitHub link', async () => {

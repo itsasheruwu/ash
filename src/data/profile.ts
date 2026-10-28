@@ -54,7 +54,7 @@ export function instagramUsernameFromProfile(p: ProfileConfig): string | null {
 
 export const profile: ProfileConfig = {
   displayName: 'Ash',
-  aliases: ['ash', 'cal', 'itsasheruwu'],
+  aliases: ['ash', 'cal', 'calissick', 'itsash583', 'itsasheruwu', 'itsdavidig'],
   instagramUsername: 'itsdavidig',
   avatarSrc: 'instagram-avatar.jpg',
   // Production falls back to https://ash-chi-nine.vercel.app/api/instagram-avatar when env is unset.
@@ -102,9 +102,9 @@ export const profile: ProfileConfig = {
     {
       id: 'tiktok',
       label: 'TikTok',
-      handle: '@itsash583 & @caldidsumshi',
+      handle: '@itsash583 & @calissick',
       url: 'https://www.tiktok.com/@itsash583',
-      artistUrl: 'https://www.tiktok.com/@caldidsumshi',
+      artistUrl: 'https://www.tiktok.com/@calissick',
       status: 'active',
     },
   ],

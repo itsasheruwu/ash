@@ -212,6 +212,7 @@ button:focus-visible {
   gap: var(--space-3);
   align-items: center;
   position: relative;
+  z-index: 1;
   padding: 0;
   text-align: center;
   animation: enter-up 0.55s var(--ease-out) both;
@@ -1856,6 +1857,10 @@ a.extras-row:hover .extras-row__icon {
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted-deep);
+}
+
+.projects-section__languages {
+  text-align: center;
 }
 
 .projects-section__language-list {

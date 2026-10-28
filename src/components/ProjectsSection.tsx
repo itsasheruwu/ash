@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { FaChevronDown } from 'react-icons/fa6'
-import { SiClaude } from 'react-icons/si'
+import { SiClaude, SiX } from 'react-icons/si'
 import type { IconType } from 'react-icons'
 import { cn } from '@/lib/utils'
 import { modalCloseMs } from '@/lib/transitions'
 import { CodexIcon } from './icons/CodexIcon'
-import { CursorIcon } from './icons/CursorIcon'
-import { OpenCodeIcon } from './icons/OpenCodeIcon'
+import { WisprFlowIcon } from './icons/WisprFlowIcon'
 import { AvatarGroup } from './AvatarGroup'
 import { codingLanguages, devTools, type DevTool } from '../data/developer'
 import { projects, type Project } from '../data/projects'
@@ -14,8 +13,8 @@ import ProjectDetailModal from './ProjectDetailModal'
 
 const toolIconMap: Record<DevTool['id'], IconType> = {
   codex: CodexIcon as IconType,
-  cursor: CursorIcon as IconType,
-  opencode: OpenCodeIcon as IconType,
+  x: SiX,
+  wispr: WisprFlowIcon as IconType,
   claude: SiClaude,
 }
 

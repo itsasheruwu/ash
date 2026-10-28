@@ -1,5 +1,5 @@
 export type DevTool = {
-  id: 'codex' | 'cursor' | 'opencode' | 'claude'
+  id: 'claude' | 'codex' | 'wispr' | 'x'
   name: string
   priceLabel: string
   /** When set, price is clickable and reveals this note. */
@@ -21,29 +21,23 @@ export const codingLanguages = [
 
 export const devTools: DevTool[] = [
   {
+    id: 'claude',
+    name: 'Claude Max 5x',
+    priceLabel: '$100/mo',
+  },
+  {
     id: 'codex',
     name: 'Codex Pro Lite',
     priceLabel: '$100/mo',
   },
   {
-    id: 'cursor',
-    name: 'Cursor Pro',
-    priceLabel: '$20/mo',
+    id: 'wispr',
+    name: 'Wispr Flow',
+    priceLabel: 'Free',
   },
   {
-    id: 'opencode',
-    name: 'OpenCode Go',
-    priceLabel: '$10/mo',
-  },
-  {
-    id: 'claude',
-    name: 'Claude Code',
-    priceLabel: 'CLIProxyAPI',
-    priceDetail:
-      'I run free Claude Code and route my other AI subscriptions through CLIProxyAPI.',
-    priceDetailLink: {
-      label: 'CLIProxyAPI',
-      href: 'https://github.com/router-for-me/CLIProxyAPI',
-    },
+    id: 'x',
+    name: 'X Subscription Premium',
+    priceLabel: '$30/mo',
   },
 ]
