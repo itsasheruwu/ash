@@ -1,3 +1,5 @@
+import { profileImageFromHtml } from '../lib/instagram-profile.js'
+
 /**
  * Vercel Serverless: GET /api/instagram-avatar?username=someuser
  *
@@ -37,7 +39,7 @@ const IG_HEADERS_JSON = {
 }
 
 const IG_HEADERS_HTML = {
-  'User-Agent': UA,
+  'User-Agent': 'Mozilla/5.0',
   Accept: 'text/html,application/xhtml+xml',
   'Accept-Language': 'en-US,en;q=0.9',
   Referer: 'https://www.instagram.com/',
@@ -137,7 +139,7 @@ async function profilePicFromProfileHtml(username) {
   const lo = html.match(/"profile_pic_url":"([^"]+)"/)
   // Prefer structured fields; og:image is often the IG logo on login walls.
   const raw = hd?.[1] ?? lo?.[1]
-  return normalizeInstagramImageUrl(raw)
+  return normalizeInstagramImageUrl(raw) ?? profileImageFromHtml(html, username)
 }
 
 function normalizeInstagramImageUrl(raw) {

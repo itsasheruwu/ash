@@ -8,6 +8,7 @@
 import { writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { profileImageFromHtml } from '../lib/instagram-profile.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = join(__dirname, '..')
@@ -52,7 +53,11 @@ async function profilePicUrl(username) {
       data?.data?.user?.profile_pic_url_hd ?? data?.data?.user?.profile_pic_url ?? null
     if (typeof pic === 'string' && isLikelyRealProfilePicUrl(pic)) return pic
   }
-  return null
+  const res = await fetch(`https://www.instagram.com/${encodeURIComponent(username)}/`, {
+    headers: { 'User-Agent': 'Mozilla/5.0' },
+  })
+  if (!res.ok) return null
+  return profileImageFromHtml(await res.text(), username)
 }
 
 async function main() {
